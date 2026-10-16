@@ -1,0 +1,9 @@
+{
+  "informative_variables": [
+    "signal_x",
+    "signal_y",
+    "signal_flag"
+  ],
+  "seed": 42,
+  "n": 420
+}

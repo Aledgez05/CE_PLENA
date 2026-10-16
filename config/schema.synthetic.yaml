@@ -1,0 +1,55 @@
+dataset_path: data/synthetic/planted.csv
+target: depressed
+id_columns:
+- survey_id
+group_column: null
+informative_variables:
+- signal_x
+- signal_y
+- signal_flag
+sensitive_columns: []
+ablation_groups:
+  financial:
+  - noise_huge
+  geographic: []
+features:
+  signal_x:
+    type: continuous
+    status: confirmed
+    justification: Señal plantada, continua.
+  signal_y:
+    type: continuous
+    status: confirmed
+    justification: Señal plantada, continua.
+  signal_flag:
+    type: binary
+    status: confirmed
+    justification: Señal plantada, binaria.
+  noise_gauss:
+    type: continuous
+    status: confirmed
+    justification: Ruido gaussiano con faltantes.
+  noise_extra:
+    type: continuous
+    status: confirmed
+    justification: Ruido continuo.
+  noise_binary:
+    type: binary
+    status: confirmed
+    justification: Ruido binario.
+  noise_nominal:
+    type: nominal
+    status: confirmed
+    justification: Nominal de 25 niveles, ruido.
+  noise_huge:
+    type: continuous
+    scaler: robust
+    status: confirmed
+    justification: Ruido de escala enorme; se escala con RobustScaler.
+exclusions:
+- column: survey_id
+  reason: identificador
+  status: confirmed
+- column: generative_cluster
+  reason: cluster generativo; usarlo sería fuga de la estructura plantada
+  status: confirmed
