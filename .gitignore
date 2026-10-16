@@ -1,5 +1,5 @@
-# Datos originales y salidas con información del estudio
-/b_depressed.csv
+# Salidas del estudio. El CSV de trabajo se versiona a propósito
+# para que el equipo pueda clonar y correr.
 /DepressionDataset.csv
 /data/raw/
 /results/
