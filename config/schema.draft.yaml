@@ -1,0 +1,116 @@
+dataset_path: b_depressed.csv
+target: depressed
+id_columns:
+- survey_id
+group_column: null
+features:
+  ville_id:
+    type: continuous
+    status: UNCONFIRMED
+    justification: 'Tipo inferido por la auditoría: continuous. La semántica y la
+      codificación quedan UNCONFIRMED hasta confirmación humana.'
+  sex:
+    type: binary
+    status: UNCONFIRMED
+    justification: 'Tipo inferido por la auditoría: binary. La semántica y la codificación
+      quedan UNCONFIRMED hasta confirmación humana.'
+  age:
+    type: continuous
+    status: UNCONFIRMED
+    justification: 'Tipo inferido por la auditoría: continuous. La semántica y la
+      codificación quedan UNCONFIRMED hasta confirmación humana.'
+  married:
+    type: binary
+    status: UNCONFIRMED
+    justification: 'Tipo inferido por la auditoría: binary. La semántica y la codificación
+      quedan UNCONFIRMED hasta confirmación humana.'
+  number_children:
+    type: discrete
+    status: UNCONFIRMED
+    justification: 'Tipo inferido por la auditoría: discrete. La semántica y la codificación
+      quedan UNCONFIRMED hasta confirmación humana.'
+  education_level:
+    type: continuous
+    status: UNCONFIRMED
+    justification: 'Tipo inferido por la auditoría: continuous. La semántica y la
+      codificación quedan UNCONFIRMED hasta confirmación humana.'
+  total_members:
+    type: discrete
+    status: UNCONFIRMED
+    justification: 'Tipo inferido por la auditoría: discrete. La semántica y la codificación
+      quedan UNCONFIRMED hasta confirmación humana.'
+  gained_asset:
+    type: continuous
+    status: UNCONFIRMED
+    justification: 'Tipo inferido por la auditoría: continuous. La semántica y la
+      codificación quedan UNCONFIRMED hasta confirmación humana.'
+  durable_asset:
+    type: continuous
+    status: UNCONFIRMED
+    justification: 'Tipo inferido por la auditoría: continuous. La semántica y la
+      codificación quedan UNCONFIRMED hasta confirmación humana.'
+  save_asset:
+    type: continuous
+    status: UNCONFIRMED
+    justification: 'Tipo inferido por la auditoría: continuous. La semántica y la
+      codificación quedan UNCONFIRMED hasta confirmación humana.'
+  living_expenses:
+    type: continuous
+    status: UNCONFIRMED
+    justification: 'Tipo inferido por la auditoría: continuous. La semántica y la
+      codificación quedan UNCONFIRMED hasta confirmación humana.'
+  other_expenses:
+    type: continuous
+    status: UNCONFIRMED
+    justification: 'Tipo inferido por la auditoría: continuous. La semántica y la
+      codificación quedan UNCONFIRMED hasta confirmación humana.'
+  incoming_salary:
+    type: binary
+    status: UNCONFIRMED
+    justification: 'Tipo inferido por la auditoría: binary. La semántica y la codificación
+      quedan UNCONFIRMED hasta confirmación humana.'
+  incoming_own_farm:
+    type: binary
+    status: UNCONFIRMED
+    justification: 'Tipo inferido por la auditoría: binary. La semántica y la codificación
+      quedan UNCONFIRMED hasta confirmación humana.'
+  incoming_business:
+    type: binary
+    status: UNCONFIRMED
+    justification: 'Tipo inferido por la auditoría: binary. La semántica y la codificación
+      quedan UNCONFIRMED hasta confirmación humana.'
+  incoming_no_business:
+    type: binary
+    status: UNCONFIRMED
+    justification: 'Tipo inferido por la auditoría: binary. La semántica y la codificación
+      quedan UNCONFIRMED hasta confirmación humana.'
+  incoming_agricultural:
+    type: continuous
+    status: UNCONFIRMED
+    justification: 'Tipo inferido por la auditoría: continuous. La semántica y la
+      codificación quedan UNCONFIRMED hasta confirmación humana.'
+  farm_expenses:
+    type: continuous
+    status: UNCONFIRMED
+    justification: 'Tipo inferido por la auditoría: continuous. La semántica y la
+      codificación quedan UNCONFIRMED hasta confirmación humana.'
+  labor_primary:
+    type: binary
+    status: UNCONFIRMED
+    justification: 'Tipo inferido por la auditoría: binary. La semántica y la codificación
+      quedan UNCONFIRMED hasta confirmación humana.'
+  lasting_investment:
+    type: continuous
+    status: UNCONFIRMED
+    justification: 'Tipo inferido por la auditoría: continuous. La semántica y la
+      codificación quedan UNCONFIRMED hasta confirmación humana.'
+  no_lasting_investmen:
+    type: continuous
+    status: UNCONFIRMED
+    justification: 'Tipo inferido por la auditoría: continuous. La semántica y la
+      codificación quedan UNCONFIRMED hasta confirmación humana.'
+exclusions:
+- column: survey_id
+  reason: identificador (relación de únicos cercana a 1)
+  status: UNCONFIRMED
+note: BORRADOR. No usar para entrenar mientras haya UNCONFIRMED.
