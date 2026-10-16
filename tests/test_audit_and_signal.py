@@ -57,20 +57,24 @@ def test_planted_signal_recovers_informative_variables():
         fitness_sample_size=250,
         ga=GAConfig(
             population=28,
-            generations=12,
+            generations=14,
             elitism=2,
             tournament=3,
-            mutation_sigma=0.1,
-            mutation_rate=0.2,
-            w_max=0.45,
+            mutation_sigma=0.12,
+            mutation_rate=0.25,
+            w_max=0.5,
             min_active=3,
-            lambda_active=0.02,
+            lambda_active=0.01,
             stagnation_patience=8,
             blx_alpha=0.3,
             crossover_rate=0.85,
         ),
-        kmeans_n_init=4,
-        penalties=PenaltyConfig(min_cluster_frac=0.05, neff_min=2.2, neff_coef=0.05),
+        kmeans_n_init=3,
+        penalties=PenaltyConfig(min_cluster_frac=0.05, neff_min=2.0, neff_coef=0.02),
     )
     report = planted_signal_report(schema, experiment)
+    assert report["chance"] == len(schema.informative_variables) / report["n_features"]
     assert report["passed"], report
+    finite_ari = [value for value in report["ari_generative_val"] if value == value]
+    assert finite_ari
+    assert max(finite_ari) > 0.0

@@ -15,8 +15,8 @@ import pandas as pd
 from scipy.stats import wilcoxon
 
 from plena import __version__
-from plena.baselines import equal_weights, permutation_reference, random_search
-from plena.chromosome import decode, n_eff
+from plena.baselines import equal_weights, permutation_reference
+from plena.chromosome import n_eff
 from plena.clustering import fit_kmeans, kmedoids_alternate, predict_centroids, predict_knn
 from plena.config import ExperimentConfig, SchemaConfig, assert_weights_feasible, validate_schema
 from plena.data import (
@@ -34,7 +34,13 @@ from plena.evaluation import (
     external_metrics,
     internal_metrics,
 )
-from plena.faiss_index import FlatL2Index, benchmark_latency, l2_matches_weighted, weighted_vectors
+from plena.faiss_index import (
+    FlatL2Index,
+    benchmark_latency,
+    classify_neighbor_rows,
+    l2_matches_weighted,
+    weighted_vectors,
+)
 from plena.fitness import FitnessEvaluator
 from plena.genetic_algorithm import run_ga
 from plena.preprocessing import build_preprocessor, fit_route_a
@@ -80,6 +86,12 @@ class DatasetBundle:
     types: dict[str, str]
     splits: dict[str, np.ndarray]
     source_rows_train: np.ndarray
+    groups_train: np.ndarray | None = None
+    groups_val: np.ndarray | None = None
+    groups_test: np.ndarray | None = None
+    generative_train: np.ndarray | None = None
+    generative_val: np.ndarray | None = None
+    generative_test: np.ndarray | None = None
 
 
 def prepare_dataset(schema: SchemaConfig, experiment: ExperimentConfig) -> DatasetBundle:
@@ -118,6 +130,23 @@ def prepare_dataset(schema: SchemaConfig, experiment: ExperimentConfig) -> Datas
     y_train = y_all[splits["train"]]
     y_val = y_all[splits["val"]]
     y_test = y_all[splits["test"]]
+    positives = {
+        "train": int(np.sum(np.asarray(y_train).astype(float) == 1)),
+        "val": int(np.sum(np.asarray(y_val).astype(float) == 1)),
+        "test": int(np.sum(np.asarray(y_test).astype(float) == 1)),
+    }
+    if experiment.positive_minimum and any(count < experiment.positive_minimum for count in positives.values()):
+        raise RuntimeError(
+            "Alguna partición tiene muy pocos positivos "
+            f"({positives}; mínimo {experiment.positive_minimum}). "
+            "No se continúa el estudio."
+        )
+    groups_train = groups_val = groups_test = None
+    if groups is not None:
+        groups_train = groups[splits["train"]]
+        groups_val = groups[splits["val"]]
+        groups_test = groups[splits["test"]]
+    generative = frame["generative_cluster"].to_numpy() if "generative_cluster" in frame.columns else None
     x_fit, y_fit = _fitness_sample(
         np.asarray(x_train, dtype=float),
         y_train,
@@ -142,6 +171,12 @@ def prepare_dataset(schema: SchemaConfig, experiment: ExperimentConfig) -> Datas
         types={name: spec.type for name, spec in schema.features.items()},
         splits=splits,
         source_rows_train=frame.iloc[splits["train"]]["source_row"].to_numpy(),
+        groups_train=None if groups_train is None else np.asarray(groups_train),
+        groups_val=None if groups_val is None else np.asarray(groups_val),
+        groups_test=None if groups_test is None else np.asarray(groups_test),
+        generative_train=None if generative is None else np.asarray(generative)[splits["train"]],
+        generative_val=None if generative is None else np.asarray(generative)[splits["val"]],
+        generative_test=None if generative is None else np.asarray(generative)[splits["test"]],
     )
 
 
@@ -228,10 +263,42 @@ def _row(method: str, variant: str, k: int, seed: int, split: str, metrics: dict
     }
 
 
-def run_study(schema: SchemaConfig, experiment: ExperimentConfig, output_dir: Path) -> dict:
-    """Corre la comparación. Test entra solo en ``_evaluate_test``."""
+def run_study(
+    schema: SchemaConfig,
+    experiment: ExperimentConfig,
+    output_dir: Path,
+    *,
+    k_values: list[int] | None = None,
+    variants: tuple[str, ...] = ("v1", "v2"),
+    seed_start: int = 0,
+    seed_end: int | None = None,
+    measure_cost: bool = False,
+    finalize: bool | None = None,
+) -> dict:
+    """Corre la comparación. Test entra solo al cerrar el estudio."""
+    from plena.study_loop import (
+        budget_table,
+        choose_budget,
+        plan_jobs,
+        probe_fitness,
+        random_counts,
+        run_jobs,
+    )
+
     output_dir.mkdir(parents=True, exist_ok=True)
+    started_clock = time.perf_counter()
+    criterion = output_dir / "selection_criterion.txt"
+    criterion.write_text(experiment.selection_criterion + "\n" + SELECTION_NOTE + "\n", encoding="utf-8")
     bundle = prepare_dataset(schema, experiment)
+    positives = {
+        name: int(np.sum(np.asarray(getattr(bundle, f"y_{name}")).astype(float) == 1))
+        for name in ("train", "val", "test")
+    }
+    print(
+        "Positivos por partición: "
+        + ", ".join(f"{name}={count}" for name, count in positives.items()),
+        flush=True,
+    )
     save_splits(
         output_dir / "splits.json",
         bundle.splits,
@@ -243,94 +310,107 @@ def run_study(schema: SchemaConfig, experiment: ExperimentConfig, output_dir: Pa
             "prevalence_train": prevalence(bundle.y_train),
             "prevalence_val": prevalence(bundle.y_val),
             "prevalence_test": prevalence(bundle.y_test),
+            "positives": positives,
+            "n_train": int(len(bundle.y_train)),
+            "n_val": int(len(bundle.y_val)),
+            "n_test": int(len(bundle.y_test)),
             "note": "Índices sobre las filas que conservan etiqueta. Test no entra en la búsqueda.",
         },
     )
-    _write_cost(bundle, experiment, output_dir / "cost_estimate.csv")
-    records = []
-    histories = []
-    stored = []
-    configured_budget = experiment.ga.population * experiment.ga.generations
-    for k in experiment.k_values:
-        for variant in ("v1", "v2"):
+    if measure_cost:
+        one_eval = probe_fitness(bundle, experiment, n_eval=100)
+        cuts, hours, minutes = choose_budget(experiment, one_eval)
+        budget_table(experiment, one_eval, cuts, hours, minutes).to_csv(
+            output_dir / "cost_estimate.csv", index=False
+        )
+        print(
+            f"Estimación: {hours:.2f} h con {experiment.n_jobs} procesos. "
+            f"Una corrida de GA: {minutes:.2f} min. Recortes: {cuts or 'ninguno'}.",
+            flush=True,
+        )
+        if hours > experiment.max_hours or minutes > 10:
+            raise RuntimeError(
+                "El presupuesto sigue por encima del límite después de los recortes permitidos. "
+                f"Estimación {hours:.2f} h, una corrida {minutes:.2f} min. Recortes: {cuts or 'ninguno'}."
+            )
+    else:
+        _write_cost(bundle, experiment, output_dir / "cost_estimate.csv")
+    selected_k = list(experiment.k_values if k_values is None else k_values)
+    counts = random_counts(experiment, selected_k, None)
+    ga_jobs = plan_jobs(
+        experiment,
+        k_values=selected_k,
+        variants=variants,
+        seed_start=seed_start,
+        seed_end=seed_end,
+        random_for_k=counts,
+        split_id="main",
+        methods=("ga",),
+    )
+    records, stored, histories = run_jobs(bundle, experiment, output_dir, ga_jobs)
+    chosen_preview = _select(stored, experiment)
+    chosen_k = None
+    if "v1" in chosen_preview:
+        chosen_k = int(chosen_preview["v1"]["k"])
+    elif chosen_preview:
+        chosen_k = int(next(iter(chosen_preview.values()))["k"])
+    full_slice = (
+        k_values is None
+        and variants == ("v1", "v2")
+        and seed_start == 0
+        and (seed_end is None or seed_end >= experiment.n_seeds_ga)
+    )
+    if full_slice and chosen_k is not None:
+        counts = random_counts(experiment, selected_k, chosen_k)
+    random_jobs = plan_jobs(
+        experiment,
+        k_values=selected_k,
+        variants=variants,
+        seed_start=seed_start,
+        seed_end=seed_end,
+        random_for_k=counts,
+        split_id="main",
+        methods=("random_search",),
+    )
+    extra_records, extra_stored, _extra_hist = run_jobs(bundle, experiment, output_dir, random_jobs)
+    records.extend(extra_records)
+    stored.extend(extra_stored)
+    for k in selected_k:
+        for variant in variants:
             weights = equal_weights(len(bundle.feature_names))
             metrics = score_weights(bundle, weights, k, experiment, "val")
             records.append(_row("equal_weights", variant, k, experiment.seed, "val", metrics, 0.0))
-            for offset in range(experiment.n_seeds_ga):
-                seed = experiment.seed + offset
-                evaluator = FitnessEvaluator(
-                    bundle.x_fit, bundle.y_fit, bundle.column_map, experiment, k=k, variant=variant
-                )
-                started = time.perf_counter()
-                ga_result = run_ga(evaluator, len(bundle.feature_names), experiment.ga, seed)
-                elapsed = time.perf_counter() - started
-                if not ga_result.best.valid or ga_result.best.weights is None:
-                    continue
-                metrics = score_weights(bundle, ga_result.best.weights, k, experiment, "val")
-                records.append(_row("ga", variant, k, seed, "val", metrics, elapsed))
-                histories.append({"variant": variant, "k": k, "seed": seed, "history": ga_result.history})
-                stored.append(
-                    {
-                        "method": "ga",
-                        "variant": variant,
-                        "k": k,
-                        "seed": seed,
-                        "weights": ga_result.best.weights.tolist(),
-                        "mask": ga_result.best.mask.astype(int).tolist(),
-                        "genes": ga_result.best_genes.tolist(),
-                        "n_evaluations": ga_result.n_evaluations,
-                        "val_silhouette": metrics["silhouette"],
-                        "val_ari": metrics["ari"],
-                        "n_active": metrics["n_active"],
-                        "n_eff": metrics["n_eff"],
-                    }
-                )
-            for offset in range(experiment.n_random_runs):
-                seed = experiment.seed + offset
-                evaluator = FitnessEvaluator(
-                    bundle.x_fit, bundle.y_fit, bundle.column_map, experiment, k=k, variant=variant
-                )
-                rng = np.random.default_rng(seed + 1000 + k)
-                started = time.perf_counter()
-                searched = random_search(
-                    evaluator,
-                    len(bundle.feature_names),
-                    configured_budget,
-                    rng,
-                    seed,
-                )
-                elapsed = time.perf_counter() - started
-                if not searched.best.valid or searched.best.weights is None:
-                    continue
-                metrics = score_weights(bundle, searched.best.weights, k, experiment, "val")
-                records.append(_row("random_search", variant, k, seed, "val", metrics, elapsed))
-                stored.append(
-                    {
-                        "method": "random_search",
-                        "variant": variant,
-                        "k": k,
-                        "seed": seed,
-                        "weights": searched.best.weights.tolist(),
-                        "n_evaluations": searched.n_evaluations,
-                        "val_silhouette": metrics["silhouette"],
-                        "val_ari": metrics["ari"],
-                        "n_active": metrics["n_active"],
-                        "n_eff": metrics["n_eff"],
-                    }
-                )
     frame = pd.DataFrame(records)
+    do_finalize = full_slice if finalize is None else finalize
+    if not do_finalize:
+        if not frame.empty:
+            frame.to_csv(output_dir / "comparison.partial.csv", index=False)
+        return {"frame": frame, "chosen": {}, "tests": [], "manifest": {"partial": True}}
     chosen = _select(stored, experiment)
-    test_rows, test_details = _evaluate_test(bundle, experiment, chosen, stored)
+    chosen["reported_k3"] = _select(
+        [item for item in stored if item["k"] == experiment.force_k],
+        experiment,
+    )
+    test_rows, test_details = _evaluate_test(bundle, experiment, {k: v for k, v in chosen.items() if k in {"v1", "v2"}}, stored)
     frame = pd.concat([frame, pd.DataFrame(test_rows)], ignore_index=True)
     tests = _wilcoxon(frame)
     _write_tables(output_dir, frame, tests, histories, chosen, bundle, schema, experiment, test_details)
+    _bootstrap_test(bundle, experiment, chosen, test_details, output_dir)
     extras = _robustness_and_inference(bundle, schema, experiment, chosen, stored, output_dir)
+    _representation_comparisons(schema, experiment, bundle, chosen, output_dir)
+    if measure_cost and experiment.robustness_partitions:
+        _robustness_partitions(schema, experiment, chosen, output_dir)
+    if measure_cost:
+        remaining = experiment.max_hours * 3600 - (time.perf_counter() - started_clock)
+        _maybe_extensions(bundle, experiment, chosen, output_dir, remaining)
     _write_environment(output_dir, schema, experiment)
     manifest = {
         "test_used_for_selection": False,
         "selection_note": SELECTION_NOTE,
+        "selection_criterion": experiment.selection_criterion,
         "chosen": chosen,
         "library_notes": extras.get("library_notes", []),
+        "positives": positives,
     }
     (output_dir / "run_manifest.json").write_text(
         json.dumps(manifest, indent=2, ensure_ascii=False), encoding="utf-8"
@@ -392,6 +472,219 @@ def _evaluate_test(bundle, experiment, chosen, stored) -> tuple[list[dict], dict
                 _row("random_search", variant, selected["k"], best_random["seed"], "test", random_metrics, 0.0)
             )
     return rows, details
+
+
+def _bootstrap_test(bundle, experiment, chosen, test_details, output_dir: Path) -> None:
+    from plena.distance import transform_weighted
+    from plena.study_loop import group_bootstrap
+
+    report = {}
+    for variant in ("v1", "v2"):
+        if variant not in chosen or variant not in test_details:
+            continue
+        weights = np.asarray(chosen[variant]["weights"], dtype=float)
+        matrix = transform_weighted(bundle.x_test, weights, bundle.column_map)
+        report[variant] = group_bootstrap(
+            bundle.y_test,
+            test_details[variant]["labels_eval"],
+            matrix,
+            bundle.groups_test,
+            experiment.bootstrap_replicates,
+            experiment.seed,
+        )
+    (output_dir / "bootstrap_test.json").write_text(
+        json.dumps(report, indent=2), encoding="utf-8"
+    )
+
+
+def _representation_comparisons(schema, experiment, bundle, chosen, output_dir: Path) -> None:
+    """Comparaciones de codificación, sin una segunda búsqueda genética."""
+    from dataclasses import replace
+
+    from plena.config import FeatureSpec
+    from plena.preprocessing import build_preprocessor, fit_route_a
+
+    rows = []
+    targets = []
+    if "v1" in chosen:
+        targets.append(int(chosen["v1"]["k"]))
+    targets.append(experiment.force_k)
+    k_values = sorted(set(targets))
+    if "education_level" in schema.features:
+        edu = schema.features["education_level"]
+        nominal = replace(edu, type="nominal", order=None, transform=None)
+        features = dict(schema.features)
+        features["education_level"] = nominal
+        rows.extend(
+            _score_representation(
+                replace(schema, features=features),
+                experiment,
+                bundle,
+                k_values,
+                "education_nominal",
+                list(features),
+            )
+        )
+    if schema.group_column and (schema.dataset_path.is_file()):
+        frame, _mapping = load_table(schema.dataset_path)
+        frame, _removed = drop_missing_target(frame, schema.target)
+        features = dict(schema.features)
+        features[schema.group_column] = FeatureSpec(
+            name=schema.group_column,
+            type="nominal",
+            status="confirmed",
+            justification="Ablación: la aldea entra como nominal.",
+        )
+        rows.extend(
+            _score_representation(
+                replace(schema, features=features),
+                experiment,
+                bundle,
+                k_values,
+                "ville_nominal",
+                list(features),
+                source=frame,
+            )
+        )
+    if rows:
+        pd.DataFrame(rows).to_csv(output_dir / "representation_ablation.csv", index=False)
+    _ = build_preprocessor, fit_route_a
+
+
+def _score_representation(schema, experiment, bundle, k_values, name, columns, source=None) -> list[dict]:
+    from dataclasses import replace
+
+    from plena.preprocessing import build_preprocessor, fit_route_a
+
+    if source is None:
+        raw_train, raw_val, raw_test = bundle.raw_train, bundle.raw_val, bundle.raw_test
+        raw_train = raw_train[columns]
+        raw_val = raw_val[columns]
+        raw_test = raw_test[columns]
+    else:
+        raw_train = source.iloc[bundle.splits["train"]][columns].reset_index(drop=True)
+        raw_val = source.iloc[bundle.splits["val"]][columns].reset_index(drop=True)
+        raw_test = source.iloc[bundle.splits["test"]][columns].reset_index(drop=True)
+    transformer, step_map = build_preprocessor(schema, experiment.scaler)
+    column_map, x_train, x_val, x_test = fit_route_a(
+        transformer, step_map, columns, raw_train, raw_val, raw_test
+    )
+    alt = replace(
+        bundle,
+        feature_names=list(columns),
+        x_train=np.asarray(x_train, dtype=float),
+        x_val=np.asarray(x_val, dtype=float),
+        x_test=np.asarray(x_test, dtype=float),
+        column_map=column_map,
+        raw_train=raw_train,
+        raw_val=raw_val,
+    )
+    rows = []
+    weights = equal_weights(len(columns))
+    note = (
+        "En la partición por aldea, los niveles de ville_id de validación no aparecen en train."
+        if name == "ville_nominal"
+        else "Comparación de codificación con pesos iguales, sin una segunda búsqueda."
+    )
+    for k in k_values:
+        for split in ("train", "val"):
+            metrics = score_weights(alt, weights, k, experiment, split)
+            rows.append(
+                {
+                    "representation": name,
+                    "k": k,
+                    "split": split,
+                    "silhouette": metrics["silhouette"],
+                    "ari": metrics["ari"],
+                    "n_features": len(columns),
+                    "note": note,
+                }
+            )
+    return rows
+
+
+def _robustness_partitions(schema, experiment, chosen, output_dir: Path) -> None:
+    """Otras particiones, solo en el k elegido y en k=3, sin reoptimizar la malla."""
+    from dataclasses import replace
+
+    from plena.study_loop import plan_jobs, run_jobs
+
+    if "v1" not in chosen:
+        return
+    k_values = sorted({experiment.force_k, int(chosen["v1"]["k"])})
+    collected = []
+    for index in range(experiment.robustness_partitions):
+        alt = replace(
+            experiment,
+            seed=experiment.seed + 100 + index,
+            robustness_partitions=0,
+            n_seeds_ga=experiment.robustness_seeds,
+        )
+        alt_bundle = prepare_dataset(schema, alt)
+        print(
+            f"Robustez, partición {index + 1} de {experiment.robustness_partitions}, semilla {alt.seed}.",
+            flush=True,
+        )
+        jobs = plan_jobs(
+            alt,
+            k_values=k_values,
+            variants=("v1", "v2"),
+            seed_start=0,
+            seed_end=experiment.robustness_seeds,
+            random_for_k={k: 0 for k in k_values},
+            split_id=f"robust_{alt.seed}",
+            methods=("ga",),
+        )
+        records, _stored, _histories = run_jobs(alt_bundle, alt, output_dir, jobs)
+        for row in records:
+            row = dict(row)
+            row["partition_seed"] = alt.seed
+            collected.append(row)
+    if collected:
+        pd.DataFrame(collected).to_csv(output_dir / "robustness.csv", index=False)
+
+
+def _maybe_extensions(bundle, experiment, chosen, output_dir: Path, remaining_seconds: float) -> None:
+    """CMA-ES primero. NSGA-II solo si todavía queda tiempo."""
+    from plena.cma_es import run_cma
+    from plena.fitness import FitnessEvaluator
+    from plena.nsga2 import run_nsga2
+
+    if "v1" not in chosen:
+        return
+    if remaining_seconds < 600:
+        (output_dir / "extensions_skipped.txt").write_text(
+            "No quedó tiempo para CMA-ES ni NSGA-II.\n", encoding="utf-8"
+        )
+        return
+    budget = experiment.ga.population * experiment.ga.generations
+    k = int(chosen["v1"]["k"])
+    reports = {}
+    for variant in ("v1", "v2"):
+        evaluator = FitnessEvaluator(
+            bundle.x_fit, bundle.y_fit, bundle.column_map, experiment, k=k, variant=variant
+        )
+        reports[variant] = run_cma(evaluator, len(bundle.feature_names), budget, experiment.seed)
+    (output_dir / "cma_es.json").write_text(json.dumps(reports, indent=2), encoding="utf-8")
+    if remaining_seconds < 2400:
+        (output_dir / "extensions_skipped.txt").write_text(
+            "CMA-ES quedó registrado. No quedó tiempo para NSGA-II.\n", encoding="utf-8"
+        )
+        return
+    evaluator_v1 = FitnessEvaluator(
+        bundle.x_fit, bundle.y_fit, bundle.column_map, experiment, k=experiment.force_k, variant="v1"
+    )
+    evaluator_v2 = FitnessEvaluator(
+        bundle.x_fit, bundle.y_fit, bundle.column_map, experiment, k=experiment.force_k, variant="v2"
+    )
+    front = run_nsga2(
+        evaluator_v1,
+        evaluator_v2,
+        population=min(experiment.ga.population, 20),
+        generations=min(experiment.ga.generations, 15),
+        seed=experiment.seed,
+    )
+    (output_dir / "nsga2.json").write_text(json.dumps(front, indent=2), encoding="utf-8")
 
 
 def _wilcoxon(frame: pd.DataFrame) -> list[dict]:
@@ -646,11 +939,8 @@ def _faiss(bundle, weights, train_metrics, selected, experiment, output_dir: Pat
     k_neighbors = min(experiment.knn_k, len(vectors))
     found = index.search(queries, k_neighbors)
     brute = index.search_numpy(queries, k_neighbors, dtype=np.float32 if index.backend == "faiss" else np.float64)
-    agree = 0
-    for row in range(len(queries)):
-        if set(found.indices[row]) != set(brute.indices[row]):
-            continue
-        agree += 1
+    kinds = classify_neighbor_rows(brute.indices, found.indices, brute.distances, found.distances)
+    agree = kinds["exact"] + kinds["same_set"] + kinds["boundary_tie"]
     knn_labels = predict_knn(vectors, train_metrics["labels_train"], queries, k_neighbors)
     centroid_labels = predict_centroids(train_metrics["centroids"], queries)
     from sklearn.metrics import adjusted_rand_score
@@ -660,6 +950,14 @@ def _faiss(bundle, weights, train_metrics, selected, experiment, output_dir: Pat
     report = {
         "backend": index.backend,
         "neighbor_row_agreement": agree / max(len(queries), 1),
+        "neighbor_exact": kinds["exact"],
+        "neighbor_same_set": kinds["same_set"],
+        "neighbor_boundary_tie": kinds["boundary_tie"],
+        "neighbor_mismatch": kinds["mismatch"],
+        "neighbor_note": (
+            "La fuerza bruta de referencia está en float32, igual que FAISS. "
+            "Un desacuerdo cuya distancia cae junto a la k-ésima se cuenta como empate."
+        ),
         "centroid_vs_knn_ari": agreement,
         "latency": latency,
         "note": "Si el conjunto es pequeño, FAISS puede no ser más rápido que la fuerza bruta.",
@@ -731,7 +1029,11 @@ def planted_signal_report(
     set_seed(experiment.seed)
     bundle = prepare_dataset(schema, experiment)
     k = experiment.force_k if k is None else k
+    from sklearn.metrics import adjusted_rand_score
+
     fractions = []
+    before_caps = []
+    generative_aris = []
     for offset in range(experiment.n_seeds_ga):
         seed = experiment.seed + offset
         evaluator = FitnessEvaluator(
@@ -740,12 +1042,32 @@ def planted_signal_report(
         result = run_ga(evaluator, len(bundle.feature_names), experiment.ga, seed)
         if not result.best.valid or result.best.weights is None:
             fractions.append(0.0)
+            before_caps.append(None)
+            generative_aris.append(float("nan"))
             continue
         fractions.append(
             informative_weight_fraction(result.best.weights, bundle.feature_names, schema.informative_variables)
         )
-    majority = float(np.mean(np.asarray(fractions) >= 0.70))
-    return {"fractions": fractions, "majority_at_least_70": majority, "passed": bool(majority > 0.5)}
+        before = result.best.weights_before_cap
+        before_caps.append(None if before is None else before.tolist())
+        if bundle.generative_val is None:
+            generative_aris.append(float("nan"))
+        else:
+            metrics = score_weights(bundle, result.best.weights, k, experiment, "val")
+            generative_aris.append(float(adjusted_rand_score(bundle.generative_val, metrics["labels_eval"])))
+    chance = len(schema.informative_variables) / max(len(bundle.feature_names), 1)
+    fractions_array = np.asarray(fractions, dtype=float)
+    above = int(np.sum(fractions_array > chance))
+    return {
+        "fractions": fractions,
+        "chance": chance,
+        "n_features": len(bundle.feature_names),
+        "seeds_above_chance": above,
+        "mean_fraction": float(np.mean(fractions_array)),
+        "ari_generative_val": generative_aris,
+        "weights_before_cap": before_caps,
+        "passed": bool(above > len(fractions) / 2 and float(np.mean(fractions_array)) > chance),
+    }
 
 
 def repeat_histories_match(schema: SchemaConfig, experiment: ExperimentConfig) -> bool:

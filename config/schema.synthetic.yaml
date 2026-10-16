@@ -25,27 +25,79 @@ features:
     type: binary
     status: confirmed
     justification: Señal plantada, binaria.
-  noise_gauss:
-    type: continuous
-    status: confirmed
-    justification: Ruido gaussiano con faltantes.
-  noise_extra:
+  noise_c0:
     type: continuous
     status: confirmed
     justification: Ruido continuo.
-  noise_binary:
+  noise_c1:
+    type: continuous
+    status: confirmed
+    justification: Ruido continuo.
+  noise_c2:
+    type: continuous
+    status: confirmed
+    justification: Ruido continuo.
+  noise_c3:
+    type: continuous
+    status: confirmed
+    justification: Ruido continuo.
+  noise_c4:
+    type: continuous
+    status: confirmed
+    justification: Ruido continuo.
+  noise_c5:
+    type: continuous
+    status: confirmed
+    justification: Ruido continuo.
+  noise_c6:
+    type: continuous
+    status: confirmed
+    justification: Ruido continuo.
+  noise_c7:
+    type: continuous
+    status: confirmed
+    justification: Ruido continuo.
+  noise_c8:
+    type: continuous
+    status: confirmed
+    justification: Ruido continuo.
+  noise_c9:
+    type: continuous
+    status: confirmed
+    justification: Ruido continuo.
+  noise_c10:
+    type: continuous
+    status: confirmed
+    justification: Ruido continuo.
+  noise_c11:
+    type: continuous
+    status: confirmed
+    justification: Ruido continuo.
+  noise_b0:
     type: binary
     status: confirmed
     justification: Ruido binario.
+  noise_b1:
+    type: binary
+    status: confirmed
+    justification: Ruido binario.
+  noise_d0:
+    type: discrete
+    status: confirmed
+    justification: Ruido discreto, tratado como numérico.
+  noise_d1:
+    type: discrete
+    status: confirmed
+    justification: Ruido discreto, tratado como numérico.
   noise_nominal:
     type: nominal
     status: confirmed
     justification: Nominal de 25 niveles, ruido.
   noise_huge:
     type: continuous
-    scaler: robust
+    scaler: standard
     status: confirmed
-    justification: Ruido de escala enorme; se escala con RobustScaler.
+    justification: Ruido de escala enorme; StandardScaler, sin RobustScaler.
 exclusions:
 - column: survey_id
   reason: identificador

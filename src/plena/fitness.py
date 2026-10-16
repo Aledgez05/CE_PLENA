@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 import numpy as np
 from sklearn.metrics import adjusted_rand_score, silhouette_score
 
-from plena.chromosome import decode, n_eff
+from plena.chromosome import decode_uncapped, n_eff
 from plena.clustering import fit_kmeans
 from plena.config import ExperimentConfig
 from plena.distance import ColumnMap, transform_weighted
@@ -23,6 +23,7 @@ class FitnessBreakdown:
     penalties: dict[str, float]
     valid: bool
     weights: np.ndarray | None = None
+    weights_before_cap: np.ndarray | None = None
     mask: np.ndarray | None = None
     labels: np.ndarray | None = None
     notes: list[str] = field(default_factory=list)
@@ -99,7 +100,9 @@ class FitnessEvaluator:
         ga = self.experiment.ga
         penalties_cfg = self.experiment.penalties
         try:
-            mask, weights = decode(genes, tau=ga.tau, w_max=ga.w_max, min_active=ga.min_active)
+            mask, weights, before_cap = decode_uncapped(
+                genes, tau=ga.tau, w_max=ga.w_max, min_active=ga.min_active
+            )
             weighted = transform_weighted(self.matrix, weights, self.column_map)
             model = fit_kmeans(
                 weighted,
@@ -149,6 +152,7 @@ class FitnessEvaluator:
             },
             valid=True,
             weights=weights,
+            weights_before_cap=before_cap,
             mask=mask,
             labels=labels,
         )

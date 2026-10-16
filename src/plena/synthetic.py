@@ -12,6 +12,10 @@ import yaml
 from plena.seed import set_seed
 
 INFORMATIVE = ["signal_x", "signal_y", "signal_flag"]
+NOISE_CONTINUOUS = [f"noise_c{index}" for index in range(12)]
+NOISE_BINARY = ["noise_b0", "noise_b1"]
+NOISE_DISCRETE = ["noise_d0", "noise_d1"]
+NOISE_OTHER = ["noise_nominal", "noise_huge"]
 
 
 def generate_synthetic(
@@ -20,47 +24,42 @@ def generate_synthetic(
     k: int = 3,
     missing_rate: float = 0.05,
 ) -> tuple[pd.DataFrame, list[str]]:
-    """Genera datos mixtos. Los clusters dependen solo de tres variables.
+    """Genera D>=20 variables. Solo tres llevan una señal débil.
 
-    El resto es ruido, incluida una variable de escala enorme y una nominal
-    de cardinalidad alta. ``depressed`` se asocia con el cluster generativo,
-    pero no es una variable de agrupamiento.
+    ``depressed`` se asocia de forma incompleta con el cluster generativo y
+    no es una variable de agrupamiento. ``generative_cluster`` se conserva
+    para medir ARI y queda fuera de X.
     """
     if k != 3:
         raise ValueError("Este generador planta tres clusters.")
     rng = set_seed(seed)
-    centers = np.array([[0.0, 0.0], [0.35, 0.05], [9.0, 9.0]])
+    centers = np.array([[0.0, 0.0], [2.4, 0.4], [4.8, 1.3]])
     cluster = rng.integers(0, k, size=n)
-    signal = centers[cluster] + rng.normal(0.0, 0.2, size=(n, 2))
-    flag_probability = np.array([0.02, 0.98, 0.45])[cluster]
+    signal = centers[cluster] + rng.normal(0.0, 0.55, size=(n, 2))
+    flag_probability = np.array([0.15, 0.85, 0.4])[cluster]
     signal_flag = (rng.random(n) < flag_probability).astype(int)
-    noise_gauss = rng.normal(0.0, 1.0, size=n)
-    noise_extra = rng.normal(5.0, 2.0, size=n)
-    noise_binary = rng.integers(0, 2, size=n)
-    noise_nominal = [f"nivel_{level}" for level in rng.integers(0, 25, size=n)]
-    noise_huge = rng.normal(5.0e7, 2.0e6, size=n)
-    missing = rng.random(n) < missing_rate
-    noise_gauss = noise_gauss.astype(float)
-    noise_gauss[missing] = np.nan
+    columns: dict[str, object] = {
+        "survey_id": np.arange(n),
+        "signal_x": signal[:, 0],
+        "signal_y": signal[:, 1],
+        "signal_flag": signal_flag,
+    }
+    for name in NOISE_CONTINUOUS:
+        values = rng.normal(0.0, 1.0, size=n).astype(float)
+        values[rng.random(n) < missing_rate] = np.nan
+        columns[name] = values
+    for name in NOISE_BINARY:
+        columns[name] = rng.integers(0, 2, size=n)
+    for name in NOISE_DISCRETE:
+        columns[name] = rng.integers(0, 8, size=n)
+    columns["noise_nominal"] = [f"nivel_{level}" for level in rng.integers(0, 25, size=n)]
+    columns["noise_huge"] = rng.normal(5.0e7, 2.0e6, size=n)
     depressed = (cluster == 2).astype(int)
-    flip = rng.random(n) < 0.08
+    flip = rng.random(n) < 0.35
     depressed[flip] = 1 - depressed[flip]
-    frame = pd.DataFrame(
-        {
-            "survey_id": np.arange(n),
-            "signal_x": signal[:, 0],
-            "signal_y": signal[:, 1],
-            "signal_flag": signal_flag,
-            "noise_gauss": noise_gauss,
-            "noise_extra": noise_extra,
-            "noise_binary": noise_binary,
-            "noise_nominal": noise_nominal,
-            "noise_huge": noise_huge,
-            "depressed": depressed,
-            "generative_cluster": cluster,
-        }
-    )
-    return frame, list(INFORMATIVE)
+    columns["depressed"] = depressed
+    columns["generative_cluster"] = cluster
+    return pd.DataFrame(columns), list(INFORMATIVE)
 
 
 def schema_document(dataset_path: str) -> dict:
@@ -68,16 +67,31 @@ def schema_document(dataset_path: str) -> dict:
         "signal_x": {"type": "continuous", "status": "confirmed", "justification": "Señal plantada, continua."},
         "signal_y": {"type": "continuous", "status": "confirmed", "justification": "Señal plantada, continua."},
         "signal_flag": {"type": "binary", "status": "confirmed", "justification": "Señal plantada, binaria."},
-        "noise_gauss": {"type": "continuous", "status": "confirmed", "justification": "Ruido gaussiano con faltantes."},
-        "noise_extra": {"type": "continuous", "status": "confirmed", "justification": "Ruido continuo."},
-        "noise_binary": {"type": "binary", "status": "confirmed", "justification": "Ruido binario."},
-        "noise_nominal": {"type": "nominal", "status": "confirmed", "justification": "Nominal de 25 niveles, ruido."},
-        "noise_huge": {
+    }
+    for name in NOISE_CONTINUOUS:
+        features[name] = {
             "type": "continuous",
-            "scaler": "robust",
             "status": "confirmed",
-            "justification": "Ruido de escala enorme; se escala con RobustScaler.",
-        },
+            "justification": "Ruido continuo.",
+        }
+    for name in NOISE_BINARY:
+        features[name] = {"type": "binary", "status": "confirmed", "justification": "Ruido binario."}
+    for name in NOISE_DISCRETE:
+        features[name] = {
+            "type": "discrete",
+            "status": "confirmed",
+            "justification": "Ruido discreto, tratado como numérico.",
+        }
+    features["noise_nominal"] = {
+        "type": "nominal",
+        "status": "confirmed",
+        "justification": "Nominal de 25 niveles, ruido.",
+    }
+    features["noise_huge"] = {
+        "type": "continuous",
+        "scaler": "standard",
+        "status": "confirmed",
+        "justification": "Ruido de escala enorme; StandardScaler, sin RobustScaler.",
     }
     return {
         "dataset_path": dataset_path,
@@ -105,9 +119,18 @@ def write_synthetic_bundle(root: Path, n: int = 800, seed: int = 42) -> Path:
     destination.mkdir(parents=True, exist_ok=True)
     frame, informative = generate_synthetic(n=n, seed=seed)
     csv_path = destination / "planted.csv"
-    frame.drop(columns=["generative_cluster"]).to_csv(csv_path, index=False)
+    frame.to_csv(csv_path, index=False)
     (destination / "informative_variables.json").write_text(
-        json.dumps({"informative_variables": informative, "seed": seed, "n": n}, indent=2),
+        json.dumps(
+            {
+                "informative_variables": informative,
+                "n_features": len(frame.columns) - 3,
+                "seed": seed,
+                "n": n,
+                "signal": "débil",
+            },
+            indent=2,
+        ),
         encoding="utf-8",
     )
     schema = schema_document("data/synthetic/planted.csv")

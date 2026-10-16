@@ -4,7 +4,8 @@ import numpy as np
 import pandas as pd
 from sklearn.datasets import make_blobs
 
-from plena.chromosome import decode
+from plena.baselines import random_search_seed
+from plena.chromosome import decode, decode_uncapped
 from plena.clustering import fit_kmeans, predict_centroids, validate_k
 from plena.config import ExperimentConfig, GAConfig
 from plena.distance import ColumnMap
@@ -137,3 +138,30 @@ def test_small_cluster_penalty_is_finite():
     assert np.isfinite(detail.score)
     if detail.valid:
         assert "small_cluster" in detail.penalties
+
+
+def test_weights_before_cap_can_exceed_w_max():
+    genes = np.array([0.9, 0.9, 0.9, 0.05, 0.0, 0.0])
+    _mask, weights, before = decode_uncapped(genes, tau=0.0, w_max=0.3, min_active=3)
+    assert before.max() > 0.3
+    assert weights.max() <= 0.3 + 1e-6
+    assert abs(float(before.sum()) - 1.0) < 1e-6
+
+
+def test_v2_score_uses_ari_term():
+    matrix, labels = make_blobs(n_samples=40, centers=3, n_features=4, random_state=0, cluster_std=0.3)
+    experiment = _experiment()
+    experiment.v2_alpha = 0.5
+    genes = np.full(matrix.shape[1], 0.8)
+    unsupervised = FitnessEvaluator(matrix, labels, _column_map(matrix.shape[1]), experiment, k=3, variant="v1")
+    supervised = FitnessEvaluator(matrix, labels, _column_map(matrix.shape[1]), experiment, k=3, variant="v2")
+    first = unsupervised(genes)
+    second = supervised(genes)
+    assert second.ari_train is not None
+    assert first.ari_train is None
+    gap = (1.0 - experiment.v2_alpha) * (second.ari_train - first.silhouette)
+    assert abs((second.score - first.score) - gap) < 1e-6
+
+
+def test_random_search_seed_depends_on_variant():
+    assert random_search_seed(42, 0, 3, "v1") != random_search_seed(42, 0, 3, "v2")

@@ -7,7 +7,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import StratifiedGroupKFold, train_test_split
 
 from plena.names import normalize_column_name
 
@@ -63,9 +63,9 @@ def split_indices(
 ) -> dict[str, np.ndarray]:
     """Partición reproducible.
 
-    Si hay grupos, todas las filas de un grupo caen en la misma parte.
-    La estratificación usa la etiqueta solo para equilibrar tamaños; no entra
-    al agrupamiento.
+    Si hay grupos, se usa StratifiedGroupKFold con 5 pliegues: el 0 es prueba,
+    el 1 es validación y el resto es train. Ningún grupo cae en dos partes.
+    La etiqueta solo equilibra las partes; no entra al agrupamiento.
     """
     y = np.asarray(y)
     n = len(y)
@@ -78,20 +78,24 @@ def split_indices(
     groups = np.asarray(groups)
     if len(groups) != n:
         raise ValueError("Los grupos no coinciden con las filas.")
-    group_ids = pd.unique(groups)
-    group_labels = []
-    for group_id in group_ids:
-        group_labels.append(_mode_label(y[groups == group_id]))
-    group_labels = np.asarray(group_labels)
-    try:
-        parts = _split_rows(np.arange(len(group_ids)), group_labels, train, val, test, seed)
-    except ValueError:
-        parts = _split_rows(np.arange(len(group_ids)), group_labels, train, val, test, seed, stratify=False)
-    assigned = {}
-    for name, positions in parts.items():
-        chosen = set(group_ids[positions])
-        assigned[name] = np.flatnonzero(np.isin(groups, list(chosen)))
+    splitter = StratifiedGroupKFold(n_splits=5, shuffle=True, random_state=seed)
+    fold_of_row = np.full(n, -1, dtype=int)
+    for fold, (_train_idx, test_idx) in enumerate(splitter.split(np.zeros((n, 1)), y, groups)):
+        fold_of_row[test_idx] = fold
+    if np.any(fold_of_row < 0):
+        raise ValueError("StratifiedGroupKFold dejó filas sin pliegue.")
+    assigned = {
+        "test": np.sort(np.flatnonzero(fold_of_row == 0)),
+        "val": np.sort(np.flatnonzero(fold_of_row == 1)),
+        "train": np.sort(np.flatnonzero(fold_of_row >= 2)),
+    }
     _assert_disjoint(assigned)
+    seen_groups: dict[object, str] = {}
+    for name, idx in assigned.items():
+        for group_id in np.unique(groups[idx]):
+            if group_id in seen_groups:
+                raise ValueError(f"El grupo {group_id} cayó en más de una partición.")
+            seen_groups[group_id] = name
     return assigned
 
 

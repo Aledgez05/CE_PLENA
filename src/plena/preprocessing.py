@@ -4,7 +4,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+import numpy as np
 import pandas as pd
+from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
@@ -27,6 +29,34 @@ class PreparedMatrices:
     y_train: object
     y_val: object
     y_test: object
+
+
+class Log1pNonNegative(BaseEstimator, TransformerMixin):
+    """log1p solo si no hay negativos. Un negativo detiene el ajuste."""
+
+    def fit(self, X, y=None):
+        self._refuse_negatives(X)
+        return self
+
+    def transform(self, X):
+        self._refuse_negatives(X)
+        values = np.asarray(X, dtype=float)
+        return np.log1p(values)
+
+    def get_feature_names_out(self, input_features=None):
+        if input_features is None:
+            raise ValueError("log1p necesita los nombres de entrada.")
+        return np.asarray(input_features, dtype=object)
+
+    @staticmethod
+    def _refuse_negatives(X) -> None:
+        values = np.asarray(X, dtype=float)
+        finite = values[np.isfinite(values)]
+        if finite.size and np.any(finite < 0):
+            raise ValueError(
+                "Hay valores negativos en una columna con transformación log1p. "
+                "No se aplica log1p hasta revisarlo."
+            )
 
 
 def _scaler(name: str):
@@ -61,12 +91,11 @@ def build_preprocessor(
 def _pipeline_for(spec: FeatureSpec, default_scaler: str) -> Pipeline:
     scaler_name = spec.scaler or default_scaler
     if spec.type in {"continuous", "discrete"}:
-        return Pipeline(
-            [
-                ("imputer", SimpleImputer(strategy="median", add_indicator=spec.missing_indicator)),
-                ("scaler", _scaler(scaler_name)),
-            ]
-        )
+        steps = [("imputer", SimpleImputer(strategy="median", add_indicator=spec.missing_indicator))]
+        if spec.transform == "log1p":
+            steps.append(("log1p", Log1pNonNegative()))
+        steps.append(("scaler", _scaler(scaler_name)))
+        return Pipeline(steps)
     if spec.type == "binary":
         return Pipeline(
             [
@@ -91,7 +120,7 @@ def _pipeline_for(spec: FeatureSpec, default_scaler: str) -> Pipeline:
             ]
         )
     if spec.type == "ordinal":
-        categories = spec.order or []
+        categories = [float(item) for item in (spec.order or [])]
         return Pipeline(
             [
                 (

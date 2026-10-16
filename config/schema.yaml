@@ -1,55 +1,135 @@
-dataset_path: data/synthetic/planted.csv
+description: >
+  Encuesta de condiciones de vida en zonas rurales con un indicador binario
+  de depresión, semántica no documentada. No es un estudio de posparto ni
+  una muestra descrita aquí como población general.
+dataset_path: data/b_depressed.csv
 target: depressed
 id_columns:
 - survey_id
-group_column: null
-informative_variables:
-- signal_x
-- signal_y
-- signal_flag
-sensitive_columns: []
+group_column: ville_id
+sensitive_columns:
+- sex
+- age
+- married
 ablation_groups:
   financial:
-  - noise_huge
-  geographic: []
+  - gained_asset
+  - durable_asset
+  - save_asset
+  - living_expenses
+  - other_expenses
+  - incoming_agricultural
+  - farm_expenses
+  - lasting_investment
+  - no_lasting_investmen
 features:
-  signal_x:
-    type: continuous
-    status: confirmed
-    justification: Señal plantada, continua.
-  signal_y:
-    type: continuous
-    status: confirmed
-    justification: Señal plantada, continua.
-  signal_flag:
+  sex:
     type: binary
     status: confirmed
-    justification: Señal plantada, binaria.
-  noise_gauss:
+    justification: Binaria 0/1. En el CSV solo aparecen 0 y 1.
+  age:
     type: continuous
+    scaler: standard
     status: confirmed
-    justification: Ruido gaussiano con faltantes.
-  noise_extra:
-    type: continuous
-    status: confirmed
-    justification: Ruido continuo.
-  noise_binary:
+    justification: Continua. Rango observado 17–91.
+  married:
     type: binary
     status: confirmed
-    justification: Ruido binario.
-  noise_nominal:
-    type: nominal
+    justification: Binaria 0/1. En el CSV solo aparecen 0 y 1.
+  number_children:
+    type: discrete
+    scaler: standard
     status: confirmed
-    justification: Nominal de 25 niveles, ruido.
-  noise_huge:
+    justification: Discreta numérica, no nominal.
+  education_level:
+    type: ordinal
+    scaler: standard
+    order: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+    status: confirmed
+    justification: Numérica ordenada. El 15 ausente no se rellena. Hay una ablación que la trata como nominal.
+  total_members:
+    type: discrete
+    scaler: standard
+    status: confirmed
+    justification: Discreta numérica, no nominal.
+  gained_asset:
     type: continuous
-    scaler: robust
+    transform: log1p
+    scaler: standard
     status: confirmed
-    justification: Ruido de escala enorme; se escala con RobustScaler.
+    justification: Continua de escala grande. log1p y después StandardScaler.
+  durable_asset:
+    type: continuous
+    transform: log1p
+    scaler: standard
+    status: confirmed
+    justification: Continua de escala grande. log1p y después StandardScaler.
+  save_asset:
+    type: continuous
+    transform: log1p
+    scaler: standard
+    status: confirmed
+    justification: Continua de escala grande. log1p y después StandardScaler.
+  living_expenses:
+    type: continuous
+    transform: log1p
+    scaler: standard
+    status: confirmed
+    justification: Continua de escala grande. log1p y después StandardScaler.
+  other_expenses:
+    type: continuous
+    transform: log1p
+    scaler: standard
+    status: confirmed
+    justification: Continua de escala grande. log1p y después StandardScaler.
+  incoming_salary:
+    type: binary
+    status: confirmed
+    justification: Binaria 0/1. En el CSV solo aparecen 0 y 1.
+  incoming_own_farm:
+    type: binary
+    status: confirmed
+    justification: Binaria 0/1. En el CSV solo aparecen 0 y 1.
+  incoming_business:
+    type: binary
+    status: confirmed
+    justification: Binaria 0/1. En el CSV solo aparecen 0 y 1.
+  incoming_no_business:
+    type: binary
+    status: confirmed
+    justification: Binaria 0/1. En el CSV solo aparecen 0 y 1.
+  incoming_agricultural:
+    type: continuous
+    transform: log1p
+    scaler: standard
+    status: confirmed
+    justification: Continua de escala grande. log1p y después StandardScaler.
+  farm_expenses:
+    type: continuous
+    transform: log1p
+    scaler: standard
+    status: confirmed
+    justification: Continua de escala grande. log1p y después StandardScaler.
+  labor_primary:
+    type: binary
+    status: confirmed
+    justification: Binaria 0/1. En el CSV solo aparecen 0 y 1.
+  lasting_investment:
+    type: continuous
+    transform: log1p
+    scaler: standard
+    status: confirmed
+    justification: Continua de escala grande. log1p y después StandardScaler.
+  no_lasting_investmen:
+    type: continuous
+    transform: log1p
+    scaler: standard
+    status: confirmed
+    justification: Continua de escala grande, con 20 faltantes. Mediana de train, log1p y StandardScaler.
 exclusions:
 - column: survey_id
   reason: identificador
   status: confirmed
-- column: generative_cluster
-  reason: cluster generativo; usarlo sería fuga de la estructura plantada
+- column: ville_id
+  reason: identificador de aldea; se usa solo para particionar y en una ablación nominal
   status: confirmed

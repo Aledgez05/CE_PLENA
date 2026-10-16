@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from plena.faiss_index import FlatL2Index, l2_matches_weighted
+from plena.faiss_index import FlatL2Index, classify_neighbor_rows, l2_matches_weighted
 from plena.distance import ColumnMap
 
 
@@ -16,6 +16,16 @@ def test_faiss_or_numpy_neighbors_match():
     reference = index.search_numpy(queries, 3, dtype=np.float32 if index.backend == "faiss" else np.float64)
     for row in range(len(queries)):
         assert set(found.indices[row]) == set(reference.indices[row])
+
+
+def test_boundary_tie_is_not_a_real_mismatch():
+    reference = np.array([[0, 1, 2]])
+    candidate = np.array([[0, 1, 3]])
+    distances = np.array([[0.1, 0.2, 0.30]])
+    other = np.array([[0.1, 0.2, 0.30001]])
+    kinds = classify_neighbor_rows(reference, candidate, distances, other, atol=1e-3)
+    assert kinds["boundary_tie"] == 1
+    assert kinds["mismatch"] == 0
 
 
 def test_weighted_l2_identity():

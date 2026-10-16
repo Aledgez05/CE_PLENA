@@ -38,6 +38,7 @@ def run_audit(
     *,
     dataset_path: str = "dataset.csv",
     draft_path: Path | None = None,
+    ignore_sentinel_columns: list[str] | None = None,
 ) -> dict:
     """Genera el informe, el JSON, los gráficos y el borrador de esquema."""
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -47,7 +48,7 @@ def run_audit(
         )
     report = {
         "structure": _structure(frame),
-        "quality": _quality(frame),
+        "quality": _quality(frame, ignore_sentinel_columns or []),
         "distributions": _distributions(frame),
         "label": _label_section(frame, target),
         "leakage": _leakage(frame, target),
@@ -111,12 +112,15 @@ def _infer_type(series: pd.Series) -> str:
     return "continuous"
 
 
-def _quality(frame: pd.DataFrame) -> dict:
+def _quality(frame: pd.DataFrame, ignore_sentinel_columns: list[str] | None = None) -> dict:
     n = len(frame)
     missing_col = {col: int(frame[col].isna().sum()) for col in frame.columns}
     missing_row = frame.isna().sum(axis=1)
     sentinels = {}
+    ignored = set(ignore_sentinel_columns or [])
     for column in frame.columns:
+        if column in ignored:
+            continue
         as_text = frame[column].map(lambda value: value if pd.notna(value) else None)
         count = 0
         for value in as_text:
@@ -701,10 +705,14 @@ def main() -> None:
     parser.add_argument("--target", default=None)
     parser.add_argument("--output", default="results/audit")
     args = parser.parse_args()
+    ignore_sentinels: list[str] = []
     if args.config:
         pointer = load_schema_pointer(args.config)
         csv_path = pointer.dataset_path
         target = pointer.target
+        ignore_sentinels = list(pointer.id_columns)
+        if pointer.group_column:
+            ignore_sentinels.append(pointer.group_column)
     else:
         if not args.csv or not args.target:
             raise SystemExit("Indica --config o bien --csv y --target.")
@@ -724,6 +732,7 @@ def main() -> None:
         mapping,
         dataset_path=dataset_label.replace("\\", "/"),
         draft_path=draft_path,
+        ignore_sentinel_columns=ignore_sentinels,
     )
     print(f"Auditoría escrita en {output}")
 

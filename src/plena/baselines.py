@@ -19,6 +19,14 @@ class RandomSearchResult:
     seed: int
 
 
+def random_search_seed(base: int, offset: int, k: int, variant: str) -> int:
+    """La semilla depende de la variante. V1 y V2 no recorren los mismos cromosomas."""
+    code = {"v1": 1, "v2": 2}.get(variant)
+    if code is None:
+        raise ValueError(f"Variante desconocida: {variant}")
+    return int(base + offset + 1000 * code + 17 * int(k))
+
+
 def equal_weights(n_features: int) -> np.ndarray:
     return equal_weight_vector(n_features)
 

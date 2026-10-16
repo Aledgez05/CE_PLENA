@@ -4,6 +4,8 @@
     "signal_y",
     "signal_flag"
   ],
+  "n_features": 21,
   "seed": 42,
-  "n": 420
+  "n": 420,
+  "signal": "d\u00e9bil"
 }

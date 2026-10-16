@@ -27,5 +27,16 @@ penalties: {min_cluster_frac: 0.05, neff_min: 3, small_cluster_coef: 1.0, neff_c
 kmeans: {n_init: 10, random_state: 42}
 n_permutations: 100
 knn_k: 15
-scaler: robust
+scaler: standard
 budget_seconds: null
+n_jobs: 0
+max_hours: 6
+bootstrap_replicates: 400
+robustness_partitions: 5
+robustness_seeds: 5
+positive_minimum: 20
+selection_criterion: >
+  V1 elige k y el individuo por el Silhouette de validación.
+  V2 elige por alpha*Silhouette+(1-alpha)*ARI en validación.
+  El empate se rompe con mayor N_eff y luego con menos variables activas.
+  k=3 se reporta siempre, aunque no sea el elegido. El conjunto de prueba no participa.

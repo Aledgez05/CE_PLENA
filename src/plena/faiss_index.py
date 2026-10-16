@@ -84,6 +84,45 @@ class FlatL2Index:
         return SearchResult(np.asarray(chosen, dtype=np.float64), indices.astype(int), "numpy")
 
 
+def classify_neighbor_rows(
+    reference: np.ndarray,
+    candidate: np.ndarray,
+    reference_distances: np.ndarray,
+    candidate_distances: np.ndarray,
+    atol: float = 1e-4,
+) -> dict[str, int]:
+    """Separa coincidencias exactas, empates de frontera y desacuerdos reales.
+
+    La comparación de FAISS ya se hace en float32 contra fuerza bruta float32.
+    Un vecino distinto cuya distancia queda a ``atol`` de la k-ésima se cuenta
+    como empate, no como error del índice.
+    """
+    counts = {"exact": 0, "same_set": 0, "boundary_tie": 0, "mismatch": 0}
+    for row in range(len(reference)):
+        left = reference[row]
+        right = candidate[row]
+        if np.array_equal(left, right):
+            counts["exact"] += 1
+            continue
+        if set(left.tolist()) == set(right.tolist()):
+            counts["same_set"] += 1
+            continue
+        boundary = float(np.max(reference_distances[row]))
+        extra = [value for value in right.tolist() if value not in set(left.tolist())]
+        if not extra:
+            counts["same_set"] += 1
+            continue
+        extra_distances = []
+        for value in extra:
+            positions = np.flatnonzero(right == value)
+            extra_distances.append(float(candidate_distances[row, positions[0]]))
+        if extra_distances and max(abs(item - boundary) for item in extra_distances) <= atol:
+            counts["boundary_tie"] += 1
+        else:
+            counts["mismatch"] += 1
+    return counts
+
+
 def neighbors_agree(reference: np.ndarray, candidate: np.ndarray, distances: np.ndarray, atol: float = 1e-5) -> bool:
     """Coincidencia de vecinos. Si hay empate de distancia, basta el conjunto."""
     if reference.shape != candidate.shape:

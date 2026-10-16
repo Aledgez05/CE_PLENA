@@ -64,13 +64,13 @@ def project_upper_simplex(raw: np.ndarray, w_max: float) -> np.ndarray:
     return out
 
 
-def decode(
+def decode_uncapped(
     genes: np.ndarray,
     tau: float = 0.0,
     w_max: float = 0.3,
     min_active: int = 3,
-) -> tuple[np.ndarray, np.ndarray]:
-    """Convierte un cromosoma en máscara y pesos.
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Convierte un cromosoma en máscara, pesos recortados y pesos antes del tope.
 
     ``g_j <= tau`` excluye la variable. ``g_j > tau`` propone ``w_j = g_j``.
     Si hay menos de ``min_active`` activas, se activan las de mayor gen.
@@ -99,8 +99,22 @@ def decode(
         active[order[:n_needed]] = True
     raw = np.zeros(dimension, dtype=float)
     raw[active] = np.maximum(repaired[active], 1e-6)
+    before = np.zeros(dimension, dtype=float)
+    if float(raw.sum()) > 0:
+        before = raw / raw.sum()
     weights = project_upper_simplex(raw, w_max)
     mask = weights > 1e-12
+    return mask, weights, before
+
+
+def decode(
+    genes: np.ndarray,
+    tau: float = 0.0,
+    w_max: float = 0.3,
+    min_active: int = 3,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Máscara y pesos ya recortados a ``w_max``."""
+    mask, weights, _before = decode_uncapped(genes, tau=tau, w_max=w_max, min_active=min_active)
     return mask, weights
 
 

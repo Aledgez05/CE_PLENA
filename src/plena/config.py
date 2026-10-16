@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -9,6 +10,13 @@ from typing import Any
 import yaml
 
 from plena.paths import resolve_path
+
+SELECTION_CRITERION = (
+    "V1 elige k y el individuo por el Silhouette de validación. "
+    "V2 elige por alpha*Silhouette+(1-alpha)*ARI en validación. "
+    "Empate: mayor N_eff y luego menos variables activas. "
+    "k=3 se reporta siempre. El conjunto de prueba no participa."
+)
 
 VALID_TYPES = {
     "continuous",
@@ -27,7 +35,8 @@ ROUTE_A_TYPES = {"continuous", "discrete", "binary", "nominal", "ordinal"}
 class FeatureSpec:
     name: str
     type: str
-    order: list[str] | None = None
+    order: list | None = None
+    transform: str | None = None
     missing_indicator: bool = False
     scaler: str | None = None
     status: str = "confirmed"
@@ -114,6 +123,14 @@ class ExperimentConfig:
     knn_k: int = 15
     scaler: str = "robust"
     budget_seconds: int | None = None
+    n_jobs: int = 1
+    max_hours: float = 6.0
+    bootstrap_replicates: int = 400
+    robustness_partitions: int = 0
+    robustness_seeds: int = 5
+    positive_minimum: int = 0
+    n_random_runs_other: int | None = None
+    selection_criterion: str = SELECTION_CRITERION
     source_path: Path | None = None
 
 
@@ -123,6 +140,13 @@ def _load_yaml(path: Path) -> dict[str, Any]:
     if not isinstance(data, dict):
         raise ValueError(f"{path} no contiene un mapa YAML.")
     return data
+
+
+def _resolve_jobs(value) -> int:
+    jobs = int(value)
+    if jobs <= 0:
+        return max(1, (os.cpu_count() or 2) - 1)
+    return jobs
 
 
 def _as_bool(value: Any) -> bool:
@@ -147,11 +171,13 @@ def load_schema(path: str | Path, *, allow_unconfirmed: bool = False) -> SchemaC
         ftype = str(spec.get("type", "")).strip().lower()
         order = spec.get("order")
         if order is not None:
-            order = [str(item) for item in order]
+            order = [item if isinstance(item, (int, float)) else str(item) for item in order]
+        transform = spec.get("transform")
         features[str(name)] = FeatureSpec(
             name=str(name),
             type=ftype,
             order=order,
+            transform=None if transform in (None, "", "none") else str(transform),
             missing_indicator=_as_bool(spec.get("missing_indicator", False)),
             scaler=spec.get("scaler"),
             status=str(spec.get("status", "confirmed")),
@@ -256,6 +282,16 @@ def load_experiment(path: str | Path) -> ExperimentConfig:
         knn_k=int(raw.get("knn_k", 15)),
         scaler=str(raw.get("scaler", "robust")),
         budget_seconds=None if raw.get("budget_seconds") is None else int(raw["budget_seconds"]),
+        n_jobs=_resolve_jobs(raw.get("n_jobs", 1)),
+        max_hours=float(raw.get("max_hours", 6)),
+        bootstrap_replicates=int(raw.get("bootstrap_replicates", 400)),
+        robustness_partitions=int(raw.get("robustness_partitions", 0)),
+        robustness_seeds=int(raw.get("robustness_seeds", 5)),
+        positive_minimum=int(raw.get("positive_minimum", 0)),
+        n_random_runs_other=(
+            None if raw.get("n_random_runs_other") is None else int(raw["n_random_runs_other"])
+        ),
+        selection_criterion=str(raw.get("selection_criterion") or SELECTION_CRITERION),
         source_path=source,
     )
     validate_experiment(experiment)
@@ -300,6 +336,8 @@ def validate_schema(
             raise ValueError(f"{spec.name} es ordinal y no documenta el orden.")
         if spec.scaler not in (None, "robust", "standard"):
             raise ValueError(f"Escalador no válido para {spec.name}: {spec.scaler}")
+        if spec.transform not in (None, "log1p"):
+            raise ValueError(f"Transformación no válida para {spec.name}: {spec.transform}")
         if spec.type in {"text", "date"}:
             raise ValueError(
                 f"{spec.name} es {spec.type}. Este avance solo modela variables tabulares."

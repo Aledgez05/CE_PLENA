@@ -1,6 +1,7 @@
-dataset_path: b_depressed.csv
+dataset_path: data/b_depressed.csv
 target: depressed
-id_columns: []
-group_column: null
+id_columns:
+- survey_id
+group_column: ville_id
 features: {}
 exclusions: []
