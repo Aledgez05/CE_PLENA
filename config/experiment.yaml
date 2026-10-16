@@ -1,0 +1,31 @@
+seed: 42
+n_seeds_ga: 10
+n_random_runs: 30
+k_values: [2, 3, 4, 5]
+force_k: 3
+fitness_sample_size: 1500
+split: {train: 0.6, val: 0.2, test: 0.2}
+ga:
+  population: 40
+  generations: 40
+  elitism: 2
+  tournament: 3
+  crossover: blend
+  mutation: gaussian
+  mutation_sigma: 0.2
+  mutation_rate: 0.2
+  tau: 0.0
+  w_max: 0.3
+  min_active: 3
+  lambda_active: 0.02
+  stagnation_patience: 10
+  seed_equal_weights: false
+  blx_alpha: 0.5
+  crossover_rate: 0.8
+variants: {v2_alpha: 0.5}
+penalties: {min_cluster_frac: 0.05, neff_min: 3, small_cluster_coef: 1.0, neff_coef: 0.25, invalid_score: -1.0}
+kmeans: {n_init: 10, random_state: 42}
+n_permutations: 100
+knn_k: 15
+scaler: robust
+budget_seconds: null
