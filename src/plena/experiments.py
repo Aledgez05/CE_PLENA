@@ -83,6 +83,7 @@ class DatasetBundle:
     transformer: object
     raw_train: pd.DataFrame
     raw_val: pd.DataFrame
+    raw_test: pd.DataFrame
     types: dict[str, str]
     splits: dict[str, np.ndarray]
     source_rows_train: np.ndarray
@@ -168,6 +169,7 @@ def prepare_dataset(schema: SchemaConfig, experiment: ExperimentConfig) -> Datas
         transformer=transformer,
         raw_train=raw_train,
         raw_val=raw_val,
+        raw_test=raw_test,
         types={name: spec.type for name, spec in schema.features.items()},
         splits=splits,
         source_rows_train=frame.iloc[splits["train"]]["source_row"].to_numpy(),
@@ -578,6 +580,7 @@ def _score_representation(schema, experiment, bundle, k_values, name, columns, s
         column_map=column_map,
         raw_train=raw_train,
         raw_val=raw_val,
+        raw_test=raw_test,
     )
     rows = []
     weights = equal_weights(len(columns))

@@ -1,0 +1,2 @@
+cpu_count,n_jobs,one_fitness_seconds,population,generations,n_seeds_ga,n_random_runs,n_random_runs_other,one_ga_minutes,estimated_hours,cuts,max_hours
+8,7,0.03244498799998837,40,40,10,30,,0.8651996799996898,0.9949796319996432,ninguno,6.0

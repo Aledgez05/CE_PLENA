@@ -1,0 +1,9 @@
+representation,k,split,silhouette,ari,n_features,note
+education_nominal,3,train,0.18550227083038587,-0.008951045833813155,20,"Comparación de codificación con pesos iguales, sin una segunda búsqueda."
+education_nominal,3,val,0.18509088376796312,-0.019936282930707976,20,"Comparación de codificación con pesos iguales, sin una segunda búsqueda."
+education_nominal,5,train,0.1438433001891216,0.0068866290669977,20,"Comparación de codificación con pesos iguales, sin una segunda búsqueda."
+education_nominal,5,val,0.13488653229194425,0.00842906339091265,20,"Comparación de codificación con pesos iguales, sin una segunda búsqueda."
+ville_nominal,3,train,0.15350566019777118,0.02043460323197463,21,"En la partición por aldea, los niveles de ville_id de validación no aparecen en train."
+ville_nominal,3,val,0.13590655663250614,0.0058046642861067,21,"En la partición por aldea, los niveles de ville_id de validación no aparecen en train."
+ville_nominal,5,train,0.13406463516686604,0.005692786064780207,21,"En la partición por aldea, los niveles de ville_id de validación no aparecen en train."
+ville_nominal,5,val,0.12680914531586002,0.01792896508744285,21,"En la partición por aldea, los niveles de ville_id de validación no aparecen en train."

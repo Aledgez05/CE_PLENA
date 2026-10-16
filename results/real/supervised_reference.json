@@ -1,0 +1,15 @@
+{
+  "disclaimer": "Estas m\u00e9tricas son supervisadas y no se comparan con Silhouette. La etiqueta puede ser un indicador de encuesta, no un diagn\u00f3stico.",
+  "models": {
+    "logistic_regression": {
+      "balanced_accuracy": 0.5,
+      "f1_macro": 0.4552380952380952,
+      "roc_auc": 0.4827739695539927
+    },
+    "decision_tree": {
+      "balanced_accuracy": 0.5,
+      "f1_macro": 0.4552380952380952,
+      "roc_auc": 0.4845544378171459
+    }
+  }
+}

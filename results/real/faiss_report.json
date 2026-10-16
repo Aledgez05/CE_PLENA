@@ -1,0 +1,21 @@
+{
+  "backend": "faiss",
+  "neighbor_row_agreement": 1.0,
+  "neighbor_exact": 0,
+  "neighbor_same_set": 0,
+  "neighbor_boundary_tie": 286,
+  "neighbor_mismatch": 0,
+  "neighbor_note": "La fuerza bruta de referencia est\u00e1 en float32, igual que FAISS. Un desacuerdo cuya distancia cae junto a la k-\u00e9sima se cuenta como empate.",
+  "centroid_vs_knn_ari": 1.0,
+  "latency": {
+    "backend": "faiss",
+    "memory_bytes": 136960,
+    "numpy_mean_s": 1.754666668906187e-05,
+    "numpy_p95_s": 2.1489400009158996e-05,
+    "n_queries": 50,
+    "k": 15,
+    "faiss_mean_s": 2.2290666650709077e-05,
+    "faiss_p95_s": 4.36925999892992e-05
+  },
+  "note": "Si el conjunto es peque\u00f1o, FAISS puede no ser m\u00e1s r\u00e1pido que la fuerza bruta."
+}

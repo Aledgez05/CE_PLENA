@@ -1,0 +1,3 @@
+V1 elige k y el individuo por el Silhouette de validación. V2 elige por alpha*Silhouette+(1-alpha)*ARI en validación. El empate se rompe con mayor N_eff y luego con menos variables activas. k=3 se reporta siempre, aunque no sea el elegido. El conjunto de prueba no participa.
+
+El conjunto de prueba no se usó para elegir k, pesos, lambda, alpha ni ningún hiperparámetro. La configuración se congeló con métricas de validación y solo después se calcularon las métricas de prueba, una vez.

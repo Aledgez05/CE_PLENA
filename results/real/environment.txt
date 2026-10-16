@@ -1,0 +1,10 @@
+python=3.14.3 (tags/v3.14.3:323c59a, Feb  3 2026, 16:04:56) [MSC v.1944 64 bit (AMD64)]
+platform=Windows-11-10.0.26200-SP0
+plena=0.2.0
+numpy=2.5.4
+pandas=3.0.6
+scikit-learn=1.9.1
+scipy=1.18.1
+faiss-cpu=1.15.1
+PyYAML=6.0.3
+matplotlib=3.11.2
