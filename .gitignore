@@ -1,3 +1,9 @@
+# Datos originales y salidas con información del estudio
+/b_depressed.csv
+/DepressionDataset.csv
+/data/raw/
+/results/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
