@@ -1,0 +1,816 @@
+{
+  "structure": {
+    "n_rows": 1429,
+    "n_columns": 23,
+    "memory_bytes": 263068,
+    "pandas_dtypes": {
+      "survey_id": "int64",
+      "ville_id": "int64",
+      "sex": "int64",
+      "age": "int64",
+      "married": "int64",
+      "number_children": "int64",
+      "education_level": "int64",
+      "total_members": "int64",
+      "gained_asset": "int64",
+      "durable_asset": "int64",
+      "save_asset": "int64",
+      "living_expenses": "int64",
+      "other_expenses": "int64",
+      "incoming_salary": "int64",
+      "incoming_own_farm": "int64",
+      "incoming_business": "int64",
+      "incoming_no_business": "int64",
+      "incoming_agricultural": "int64",
+      "farm_expenses": "int64",
+      "labor_primary": "int64",
+      "lasting_investment": "int64",
+      "no_lasting_investmen": "float64",
+      "depressed": "int64"
+    },
+    "inferred_types": {
+      "survey_id": "continuous",
+      "ville_id": "continuous",
+      "sex": "binary",
+      "age": "continuous",
+      "married": "binary",
+      "number_children": "discrete",
+      "education_level": "continuous",
+      "total_members": "discrete",
+      "gained_asset": "continuous",
+      "durable_asset": "continuous",
+      "save_asset": "continuous",
+      "living_expenses": "continuous",
+      "other_expenses": "continuous",
+      "incoming_salary": "binary",
+      "incoming_own_farm": "binary",
+      "incoming_business": "binary",
+      "incoming_no_business": "binary",
+      "incoming_agricultural": "continuous",
+      "farm_expenses": "continuous",
+      "labor_primary": "binary",
+      "lasting_investment": "continuous",
+      "no_lasting_investmen": "continuous",
+      "depressed": "binary"
+    },
+    "id_like": [
+      {
+        "column": "survey_id",
+        "unique_ratio": 1.0
+      }
+    ],
+    "duplicated_rows": 0
+  },
+  "quality": {
+    "missing_by_column": {
+      "survey_id": 0,
+      "ville_id": 0,
+      "sex": 0,
+      "age": 0,
+      "married": 0,
+      "number_children": 0,
+      "education_level": 0,
+      "total_members": 0,
+      "gained_asset": 0,
+      "durable_asset": 0,
+      "save_asset": 0,
+      "living_expenses": 0,
+      "other_expenses": 0,
+      "incoming_salary": 0,
+      "incoming_own_farm": 0,
+      "incoming_business": 0,
+      "incoming_no_business": 0,
+      "incoming_agricultural": 0,
+      "farm_expenses": 0,
+      "labor_primary": 0,
+      "lasting_investment": 0,
+      "no_lasting_investmen": 20,
+      "depressed": 0
+    },
+    "missing_row_mean": 0.013995801259622114,
+    "rows_with_any_missing": 20,
+    "sentinels": {
+      "survey_id": 2,
+      "ville_id": 4
+    },
+    "constant": [],
+    "near_constant": [],
+    "cardinality": {
+      "sex": 2,
+      "married": 2,
+      "number_children": 12,
+      "total_members": 12,
+      "incoming_salary": 2,
+      "incoming_own_farm": 2,
+      "incoming_business": 2,
+      "incoming_no_business": 2,
+      "labor_primary": 2,
+      "depressed": 2
+    },
+    "rare_levels": {
+      "number_children": 3,
+      "total_members": 2
+    },
+    "near_duplicates": [],
+    "missing_patterns": [],
+    "n": 1429
+  },
+  "distributions": {
+    "continuous": {
+      "survey_id": {
+        "mean": 715.0,
+        "median": 715.0,
+        "std": 412.51666632997996,
+        "skew": 0.0,
+        "kurtosis": -1.200001175295293,
+        "outlier_frac_iqr": 0.0,
+        "min": 1.0,
+        "max": 1429.0
+      },
+      "ville_id": {
+        "mean": 76.28621413575927,
+        "median": 57.0,
+        "std": 66.42075911731524,
+        "skew": 1.144694211525162,
+        "kurtosis": 0.5894925588671063,
+        "outlier_frac_iqr": 0.042687193841847444,
+        "min": 1.0,
+        "max": 292.0
+      },
+      "age": {
+        "mean": 34.77746675997201,
+        "median": 30.0,
+        "std": 13.981324002915725,
+        "skew": 1.2599502465287193,
+        "kurtosis": 1.1782787647077306,
+        "outlier_frac_iqr": 0.03568929321203639,
+        "min": 17.0,
+        "max": 91.0
+      },
+      "number_children": {
+        "mean": 2.8831350594821554,
+        "median": 3.0,
+        "std": 1.8738156614015131,
+        "skew": 0.5237682117751954,
+        "kurtosis": 0.17162599476130191,
+        "outlier_frac_iqr": 0.015395381385584325,
+        "min": 0.0,
+        "max": 11.0
+      },
+      "education_level": {
+        "mean": 8.687193841847446,
+        "median": 9.0,
+        "std": 2.922509304505905,
+        "skew": -0.7672525854178627,
+        "kurtosis": 1.4122792251788887,
+        "outlier_frac_iqr": 0.1497550734779566,
+        "min": 1.0,
+        "max": 19.0
+      },
+      "total_members": {
+        "mean": 4.9692092372288315,
+        "median": 5.0,
+        "std": 1.7856917527938159,
+        "skew": 0.540380621408478,
+        "kurtosis": 1.4323964032277754,
+        "outlier_frac_iqr": 0.021693491952414275,
+        "min": 1.0,
+        "max": 12.0
+      },
+      "gained_asset": {
+        "mean": 33634477.7396781,
+        "median": 28912201.0,
+        "std": 20031524.74508098,
+        "skew": 1.333827537645254,
+        "kurtosis": 1.4589923249754122,
+        "outlier_frac_iqr": 0.1462561231630511,
+        "min": 325112.0,
+        "max": 99127548.0
+      },
+      "durable_asset": {
+        "mean": 27172956.89643107,
+        "median": 22861940.0,
+        "std": 18150367.535167903,
+        "skew": 2.007667008936873,
+        "kurtosis": 4.264522670479347,
+        "outlier_frac_iqr": 0.20643806857942618,
+        "min": 162556.0,
+        "max": 99615601.0
+      },
+      "save_asset": {
+        "mean": 27424707.838348497,
+        "median": 23399979.0,
+        "std": 17745162.08621519,
+        "skew": 2.4772868853245837,
+        "kurtosis": 6.156060188999945,
+        "outlier_frac_iqr": 0.0,
+        "min": 172966.0,
+        "max": 99926758.0
+      },
+      "living_expenses": {
+        "mean": 32482565.522743177,
+        "median": 26692283.0,
+        "std": 21007929.759725973,
+        "skew": 1.2455219561387167,
+        "kurtosis": 1.092655424819438,
+        "outlier_frac_iqr": 0.11756473058082575,
+        "min": 262919.0,
+        "max": 99295282.0
+      },
+      "other_expenses": {
+        "mean": 33666324.45136459,
+        "median": 28203066.0,
+        "std": 21695060.59793472,
+        "skew": 1.2282936058581613,
+        "kurtosis": 1.1090283426496015,
+        "outlier_frac_iqr": 0.09517144856543037,
+        "min": 172966.0,
+        "max": 99823799.0
+      },
+      "incoming_agricultural": {
+        "mean": 34510389.11756473,
+        "median": 30028818.0,
+        "std": 20771190.243524577,
+        "skew": 1.161160515933356,
+        "kurtosis": 1.1182466224084129,
+        "outlier_frac_iqr": 0.11406578026592022,
+        "min": 325112.0,
+        "max": 99789095.0
+      },
+      "farm_expenses": {
+        "mean": 35491525.54093772,
+        "median": 31363432.0,
+        "std": 21116323.08047511,
+        "skew": 0.9808231481313031,
+        "kurtosis": 0.6728986307508489,
+        "outlier_frac_iqr": 0.0748775367389783,
+        "min": 271505.0,
+        "max": 99651194.0
+      },
+      "lasting_investment": {
+        "mean": 32992215.081875436,
+        "median": 28411718.0,
+        "std": 21208784.578713764,
+        "skew": 1.112335353306052,
+        "kurtosis": 0.913366501225215,
+        "outlier_frac_iqr": 0.08747375787263821,
+        "min": 74292.0,
+        "max": 99446667.0
+      },
+      "no_lasting_investmen": {
+        "mean": 33603850.543647975,
+        "median": 28292707.0,
+        "std": 21594612.343250133,
+        "skew": 1.111931830315626,
+        "kurtosis": 0.7739204933449395,
+        "outlier_frac_iqr": 0.08090844570617459,
+        "min": 126312.0,
+        "max": 99651194.0
+      }
+    },
+    "scale_suggestions": [
+      {
+        "column": "gained_asset",
+        "suggestion": "Considerar log1p o RobustScaler. Es una sugerencia, no una transformación aplicada."
+      },
+      {
+        "column": "durable_asset",
+        "suggestion": "Considerar log1p o RobustScaler. Es una sugerencia, no una transformación aplicada."
+      },
+      {
+        "column": "save_asset",
+        "suggestion": "Considerar log1p o RobustScaler. Es una sugerencia, no una transformación aplicada."
+      },
+      {
+        "column": "living_expenses",
+        "suggestion": "Considerar log1p o RobustScaler. Es una sugerencia, no una transformación aplicada."
+      },
+      {
+        "column": "other_expenses",
+        "suggestion": "Considerar log1p o RobustScaler. Es una sugerencia, no una transformación aplicada."
+      },
+      {
+        "column": "incoming_agricultural",
+        "suggestion": "Considerar log1p o RobustScaler. Es una sugerencia, no una transformación aplicada."
+      },
+      {
+        "column": "farm_expenses",
+        "suggestion": "Considerar log1p o RobustScaler. Es una sugerencia, no una transformación aplicada."
+      },
+      {
+        "column": "lasting_investment",
+        "suggestion": "Considerar log1p o RobustScaler. Es una sugerencia, no una transformación aplicada."
+      },
+      {
+        "column": "no_lasting_investmen",
+        "suggestion": "Considerar log1p o RobustScaler. Es una sugerencia, no una transformación aplicada."
+      }
+    ]
+  },
+  "label": {
+    "present": 1,
+    "unique": [
+      "0",
+      "1"
+    ],
+    "counts": {
+      "0": 1191,
+      "1": 238
+    },
+    "missing": 0,
+    "prevalence_of_one": 0.16655003498950316,
+    "semantics": "UNCONFIRMED",
+    "note": "No se infiere qué significa cada código solo por el nombre de la columna."
+  },
+  "leakage": {
+    "associations": [
+      {
+        "auc": 0.5046179680940386,
+        "mutual_info": 0.0,
+        "cramers_v": null,
+        "point_biserial": -0.005960103312242568,
+        "column": "survey_id"
+      },
+      {
+        "auc": 0.518186115756126,
+        "mutual_info": 0.014623341252524291,
+        "cramers_v": null,
+        "point_biserial": 0.02895351564915326,
+        "column": "ville_id"
+      },
+      {
+        "auc": 0.5012947244388939,
+        "mutual_info": 6.151799394206459e-06,
+        "cramers_v": null,
+        "point_biserial": -0.003518777872222475,
+        "column": "sex"
+      },
+      {
+        "auc": 0.5702467384938863,
+        "mutual_info": 0.00887789522403204,
+        "cramers_v": null,
+        "point_biserial": 0.10572108351735698,
+        "column": "age"
+      },
+      {
+        "auc": 0.5349646155691495,
+        "mutual_info": 0.0018507687297977804,
+        "cramers_v": null,
+        "point_biserial": -0.06215511800811313,
+        "column": "married"
+      },
+      {
+        "auc": 0.5008255191245264,
+        "mutual_info": 0.00968681676618879,
+        "cramers_v": null,
+        "point_biserial": 0.003822900985143456,
+        "column": "number_children"
+      },
+      {
+        "auc": 0.5659039434413564,
+        "mutual_info": 0.01874975173332083,
+        "cramers_v": null,
+        "point_biserial": -0.09804332390448296,
+        "column": "education_level"
+      },
+      {
+        "auc": 0.5348675994327202,
+        "mutual_info": 0.006239619179626399,
+        "cramers_v": null,
+        "point_biserial": 0.03505589236183182,
+        "column": "total_members"
+      },
+      {
+        "auc": 0.5030762934896881,
+        "mutual_info": 0.006215398920038195,
+        "cramers_v": null,
+        "point_biserial": -0.004401935536319271,
+        "column": "gained_asset"
+      },
+      {
+        "auc": 0.5243034241404371,
+        "mutual_info": 0.0,
+        "cramers_v": null,
+        "point_biserial": 0.040505374849479255,
+        "column": "durable_asset"
+      },
+      {
+        "auc": 0.5076501633398951,
+        "mutual_info": 0.012520803443166972,
+        "cramers_v": null,
+        "point_biserial": 0.00905912594642578,
+        "column": "save_asset"
+      },
+      {
+        "auc": 0.5369402168928025,
+        "mutual_info": 0.0,
+        "cramers_v": null,
+        "point_biserial": -0.02821328412519206,
+        "column": "living_expenses"
+      },
+      {
+        "auc": 0.5048719739785082,
+        "mutual_info": 0.0,
+        "cramers_v": null,
+        "point_biserial": 0.017116850199723914,
+        "column": "other_expenses"
+      },
+      {
+        "auc": 0.5020249913567442,
+        "mutual_info": 7.748475108079744e-06,
+        "cramers_v": null,
+        "point_biserial": -0.0039288654979215566,
+        "column": "incoming_salary"
+      },
+      {
+        "auc": 0.5076678026374277,
+        "mutual_info": 8.585867514540602e-05,
+        "cramers_v": null,
+        "point_biserial": 0.013161493630563112,
+        "column": "incoming_own_farm"
+      },
+      {
+        "auc": 0.5117177853509163,
+        "mutual_info": 0.000415120732053402,
+        "cramers_v": null,
+        "point_biserial": -0.028158170893971008,
+        "column": "incoming_business"
+      },
+      {
+        "auc": 0.5150145700597619,
+        "mutual_info": 0.00033077729662445154,
+        "cramers_v": null,
+        "point_biserial": -0.025496366427663637,
+        "column": "incoming_no_business"
+      },
+      {
+        "auc": 0.523553753995301,
+        "mutual_info": 0.0,
+        "cramers_v": null,
+        "point_biserial": -0.019147451932307286,
+        "column": "incoming_agricultural"
+      },
+      {
+        "auc": 0.5067364477277057,
+        "mutual_info": 0.0,
+        "cramers_v": null,
+        "point_biserial": -0.004901204540819924,
+        "column": "farm_expenses"
+      },
+      {
+        "auc": 0.5070521911535395,
+        "mutual_info": 8.315261619441794e-05,
+        "cramers_v": null,
+        "point_biserial": -0.01282523569926858,
+        "column": "labor_primary"
+      },
+      {
+        "auc": 0.5096081253660154,
+        "mutual_info": 0.0,
+        "cramers_v": null,
+        "point_biserial": 0.0041360671570523115,
+        "column": "lasting_investment"
+      },
+      {
+        "auc": 0.5421889158722679,
+        "mutual_info": 0.0016664878193688448,
+        "cramers_v": null,
+        "point_biserial": 0.051972949264482156,
+        "column": "no_lasting_investmen"
+      }
+    ],
+    "alerts": [],
+    "name_suspects": [],
+    "same_instrument": "UNCONFIRMED: no hay metadatos que indiquen qué variables salen de la misma encuesta que la etiqueta."
+  },
+  "groups": {
+    "candidate_keys": [
+      {
+        "column": "survey_id",
+        "unique": 1429,
+        "duplicated_values": 0,
+        "unique_ratio": 1.0
+      },
+      {
+        "column": "ville_id",
+        "unique": 255,
+        "duplicated_values": 1174,
+        "unique_ratio": 0.17844646606018194
+      },
+      {
+        "column": "lasting_investment",
+        "unique": 982,
+        "duplicated_values": 447,
+        "unique_ratio": 0.6871938418474458
+      },
+      {
+        "column": "no_lasting_investmen",
+        "unique": 939,
+        "duplicated_values": 489,
+        "unique_ratio": 0.6571028691392582
+      }
+    ],
+    "geographic": {
+      "ville_id": [
+        {
+          "value": "15",
+          "n": 24,
+          "label_mean": 0.25
+        },
+        {
+          "value": "23",
+          "n": 21,
+          "label_mean": 0.2857142857142857
+        },
+        {
+          "value": "17",
+          "n": 21,
+          "label_mean": 0.14285714285714285
+        },
+        {
+          "value": "7",
+          "n": 20,
+          "label_mean": 0.05
+        },
+        {
+          "value": "8",
+          "n": 19,
+          "label_mean": 0.0
+        },
+        {
+          "value": "11",
+          "n": 18,
+          "label_mean": 0.1111111111111111
+        },
+        {
+          "value": "20",
+          "n": 18,
+          "label_mean": 0.3333333333333333
+        },
+        {
+          "value": "21",
+          "n": 18,
+          "label_mean": 0.16666666666666666
+        },
+        {
+          "value": "27",
+          "n": 17,
+          "label_mean": 0.23529411764705882
+        },
+        {
+          "value": "16",
+          "n": 16,
+          "label_mean": 0.0625
+        }
+      ]
+    },
+    "notes": []
+  },
+  "computation": {
+    "n": 1429,
+    "d_raw": 23,
+    "d_numeric": 22,
+    "d_after_one_hot_estimate": 22,
+    "high_cardinality_codes": [
+      {
+        "column": "ville_id",
+        "nunique": 255,
+        "one_hot_columns_if_nominal": 255,
+        "note": "UNCONFIRMED: si se trata como nominal, el one-hot añade estas columnas."
+      },
+      {
+        "column": "age",
+        "nunique": 71,
+        "one_hot_columns_if_nominal": 71,
+        "note": "UNCONFIRMED: si se trata como nominal, el one-hot añade estas columnas."
+      },
+      {
+        "column": "education_level",
+        "nunique": 18,
+        "one_hot_columns_if_nominal": 18,
+        "note": "UNCONFIRMED: si se trata como nominal, el one-hot añade estas columnas."
+      }
+    ],
+    "pairwise_memory_bytes": 16336328,
+    "fitness_sample_recommendation": 1429,
+    "one_fitness_seconds_probe": 0.1936015999999654,
+    "probe_note": "Sonda aproximada sobre columnas numéricas imputadas, no sobre el preprocesamiento final."
+  },
+  "bias": {
+    "heuristic_columns": [
+      "ville_id",
+      "sex",
+      "age",
+      "married"
+    ],
+    "status": "UNCONFIRMED",
+    "subgroups": {
+      "ville_id": [
+        {
+          "value": "(0.999, 24.0]",
+          "n": 373,
+          "label_mean": 0.16085790884718498
+        },
+        {
+          "value": "(24.0, 57.0]",
+          "n": 348,
+          "label_mean": 0.16091954022988506
+        },
+        {
+          "value": "(57.0, 105.0]",
+          "n": 354,
+          "label_mean": 0.16101694915254236
+        },
+        {
+          "value": "(105.0, 292.0]",
+          "n": 354,
+          "label_mean": 0.18361581920903955
+        }
+      ],
+      "sex": [
+        {
+          "value": "0",
+          "n": 117,
+          "label_mean": 0.17094017094017094
+        },
+        {
+          "value": "1",
+          "n": 1312,
+          "label_mean": 0.16615853658536586
+        }
+      ],
+      "age": [
+        {
+          "value": "(16.999, 25.0]",
+          "n": 433,
+          "label_mean": 0.14780600461893764
+        },
+        {
+          "value": "(25.0, 30.0]",
+          "n": 282,
+          "label_mean": 0.1276595744680851
+        },
+        {
+          "value": "(30.0, 42.0]",
+          "n": 374,
+          "label_mean": 0.1711229946524064
+        },
+        {
+          "value": "(42.0, 91.0]",
+          "n": 340,
+          "label_mean": 0.21764705882352942
+        }
+      ],
+      "married": [
+        {
+          "value": "0",
+          "n": 325,
+          "label_mean": 0.20923076923076922
+        },
+        {
+          "value": "1",
+          "n": 1104,
+          "label_mean": 0.1539855072463768
+        }
+      ]
+    }
+  },
+  "sufficiency": {
+    "n_over_d": 62.130434782608695,
+    "minority_class_n": 238,
+    "split_note": "El tamaño por partición oficial se calcula en el paso 1.6, después de confirmar el esquema. No se usa para elegir modelos."
+  },
+  "draft_schema": {
+    "dataset_path": "b_depressed.csv",
+    "target": "depressed",
+    "id_columns": [
+      "survey_id"
+    ],
+    "group_column": null,
+    "features": {
+      "ville_id": {
+        "type": "continuous",
+        "status": "UNCONFIRMED",
+        "justification": "Tipo inferido por la auditoría: continuous. La semántica y la codificación quedan UNCONFIRMED hasta confirmación humana."
+      },
+      "sex": {
+        "type": "binary",
+        "status": "UNCONFIRMED",
+        "justification": "Tipo inferido por la auditoría: binary. La semántica y la codificación quedan UNCONFIRMED hasta confirmación humana."
+      },
+      "age": {
+        "type": "continuous",
+        "status": "UNCONFIRMED",
+        "justification": "Tipo inferido por la auditoría: continuous. La semántica y la codificación quedan UNCONFIRMED hasta confirmación humana."
+      },
+      "married": {
+        "type": "binary",
+        "status": "UNCONFIRMED",
+        "justification": "Tipo inferido por la auditoría: binary. La semántica y la codificación quedan UNCONFIRMED hasta confirmación humana."
+      },
+      "number_children": {
+        "type": "discrete",
+        "status": "UNCONFIRMED",
+        "justification": "Tipo inferido por la auditoría: discrete. La semántica y la codificación quedan UNCONFIRMED hasta confirmación humana."
+      },
+      "education_level": {
+        "type": "continuous",
+        "status": "UNCONFIRMED",
+        "justification": "Tipo inferido por la auditoría: continuous. La semántica y la codificación quedan UNCONFIRMED hasta confirmación humana."
+      },
+      "total_members": {
+        "type": "discrete",
+        "status": "UNCONFIRMED",
+        "justification": "Tipo inferido por la auditoría: discrete. La semántica y la codificación quedan UNCONFIRMED hasta confirmación humana."
+      },
+      "gained_asset": {
+        "type": "continuous",
+        "status": "UNCONFIRMED",
+        "justification": "Tipo inferido por la auditoría: continuous. La semántica y la codificación quedan UNCONFIRMED hasta confirmación humana."
+      },
+      "durable_asset": {
+        "type": "continuous",
+        "status": "UNCONFIRMED",
+        "justification": "Tipo inferido por la auditoría: continuous. La semántica y la codificación quedan UNCONFIRMED hasta confirmación humana."
+      },
+      "save_asset": {
+        "type": "continuous",
+        "status": "UNCONFIRMED",
+        "justification": "Tipo inferido por la auditoría: continuous. La semántica y la codificación quedan UNCONFIRMED hasta confirmación humana."
+      },
+      "living_expenses": {
+        "type": "continuous",
+        "status": "UNCONFIRMED",
+        "justification": "Tipo inferido por la auditoría: continuous. La semántica y la codificación quedan UNCONFIRMED hasta confirmación humana."
+      },
+      "other_expenses": {
+        "type": "continuous",
+        "status": "UNCONFIRMED",
+        "justification": "Tipo inferido por la auditoría: continuous. La semántica y la codificación quedan UNCONFIRMED hasta confirmación humana."
+      },
+      "incoming_salary": {
+        "type": "binary",
+        "status": "UNCONFIRMED",
+        "justification": "Tipo inferido por la auditoría: binary. La semántica y la codificación quedan UNCONFIRMED hasta confirmación humana."
+      },
+      "incoming_own_farm": {
+        "type": "binary",
+        "status": "UNCONFIRMED",
+        "justification": "Tipo inferido por la auditoría: binary. La semántica y la codificación quedan UNCONFIRMED hasta confirmación humana."
+      },
+      "incoming_business": {
+        "type": "binary",
+        "status": "UNCONFIRMED",
+        "justification": "Tipo inferido por la auditoría: binary. La semántica y la codificación quedan UNCONFIRMED hasta confirmación humana."
+      },
+      "incoming_no_business": {
+        "type": "binary",
+        "status": "UNCONFIRMED",
+        "justification": "Tipo inferido por la auditoría: binary. La semántica y la codificación quedan UNCONFIRMED hasta confirmación humana."
+      },
+      "incoming_agricultural": {
+        "type": "continuous",
+        "status": "UNCONFIRMED",
+        "justification": "Tipo inferido por la auditoría: continuous. La semántica y la codificación quedan UNCONFIRMED hasta confirmación humana."
+      },
+      "farm_expenses": {
+        "type": "continuous",
+        "status": "UNCONFIRMED",
+        "justification": "Tipo inferido por la auditoría: continuous. La semántica y la codificación quedan UNCONFIRMED hasta confirmación humana."
+      },
+      "labor_primary": {
+        "type": "binary",
+        "status": "UNCONFIRMED",
+        "justification": "Tipo inferido por la auditoría: binary. La semántica y la codificación quedan UNCONFIRMED hasta confirmación humana."
+      },
+      "lasting_investment": {
+        "type": "continuous",
+        "status": "UNCONFIRMED",
+        "justification": "Tipo inferido por la auditoría: continuous. La semántica y la codificación quedan UNCONFIRMED hasta confirmación humana."
+      },
+      "no_lasting_investmen": {
+        "type": "continuous",
+        "status": "UNCONFIRMED",
+        "justification": "Tipo inferido por la auditoría: continuous. La semántica y la codificación quedan UNCONFIRMED hasta confirmación humana."
+      }
+    },
+    "exclusions": [
+      {
+        "column": "survey_id",
+        "reason": "identificador (relación de únicos cercana a 1)",
+        "status": "UNCONFIRMED"
+      }
+    ],
+    "note": "BORRADOR. No usar para entrenar mientras haya UNCONFIRMED."
+  },
+  "pending": [
+    "El significado de los códigos de la etiqueta está UNCONFIRMED.",
+    "Los tipos del borrador son propuestas automáticas, no un diccionario confirmado.",
+    "Hay códigos centinela sospechosos. No se convirtieron a faltantes.",
+    "Hay columnas geográficas candidatas. Su uso queda UNCONFIRMED.",
+    "ville_id tiene 255 valores. Tratarla como nominal dispararía el one-hot.",
+    "age tiene 71 valores. Tratarla como nominal dispararía el one-hot.",
+    "education_level tiene 18 valores. Tratarla como nominal dispararía el one-hot.",
+    "No se confirma si hay observaciones repetidas por persona u hogar."
+  ]
+}

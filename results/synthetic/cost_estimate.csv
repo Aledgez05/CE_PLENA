@@ -1,0 +1,2 @@
+one_fitness_seconds,fitness_sample_size,configured_evaluations_per_run,estimated_ga_seconds,budget_seconds,exceeds_budget
+0.09694759999911184,220,128,496.37171199545264,1800,False

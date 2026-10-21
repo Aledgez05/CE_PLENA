@@ -1,0 +1,16 @@
+{
+  "backend": "faiss",
+  "neighbor_row_agreement": 0.99375,
+  "centroid_vs_knn_ari": 1.0,
+  "latency": {
+    "backend": "faiss",
+    "memory_bytes": 122880,
+    "numpy_mean_s": 1.9140666675715087e-05,
+    "numpy_p95_s": 2.4371600004087668e-05,
+    "n_queries": 50,
+    "k": 7,
+    "faiss_mean_s": 1.247733333002543e-05,
+    "faiss_p95_s": 2.8313399994658538e-05
+  },
+  "note": "Si el conjunto es peque\u00f1o, FAISS puede no ser m\u00e1s r\u00e1pido que la fuerza bruta."
+}

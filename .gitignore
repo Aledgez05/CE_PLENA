@@ -1,8 +1,9 @@
-# Salidas del estudio. El CSV de trabajo se versiona a propósito
-# para que el equipo pueda clonar y correr.
+# El CSV de trabajo y results/ se versionan para que un clon traiga
+# datos, auditoría y cifras. Ver PLENA_Estado_Resultados.md.
 /DepressionDataset.csv
 /data/raw/
-/results/
+# Corrida de humo local. No forma parte del estudio cerrado.
+/results/_smoke/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

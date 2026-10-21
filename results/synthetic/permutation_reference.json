@@ -1,0 +1,7 @@
+{
+  "null_ari_mean": -0.0020195320023643124,
+  "null_ari_std": 0.00527740650948813,
+  "null_silhouette_mean": -0.06749529564903042,
+  "null_silhouette_std": 0.011030045317274258,
+  "n_permutations": 20
+}

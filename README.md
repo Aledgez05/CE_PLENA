@@ -1,6 +1,6 @@
 # PLENA
 
-Prototipo académico de cómputo evolutivo. Un algoritmo genético de dominio real elige y pondera variables para agrupar una encuesta de condiciones de vida en zonas rurales con un indicador binario de depresión, semántica no documentada.
+Prototipo académico de cómputo evolutivo. Un algoritmo genético de dominio real elige y pondera variables para agrupar una encuesta de condiciones de vida en zonas rurales con un indicador binario de depresión. La lectura cerrada del avance, las cifras y lo que sigue están en `PLENA_Estado_Resultados.md`.
 
 No diagnostica depresión. Los grupos se llaman `cluster_0`, `cluster_1`, … y no son niveles clínicos de riesgo. ARI y AUC no se interpretan como validación clínica: la construcción del indicador `depressed` no está documentada. En la descripción pública de OpenML (id 43419) 0 es no deprimido y 1 es deprimido.
 
@@ -31,7 +31,7 @@ Para repartir el trabajo: `--k`, `--variant v1|v2` y `--seeds A:B` (índices sem
 | `config/schema.yaml` | Esquema confirmado del CSV real |
 | `config/experiment.yaml` | Presupuesto del estudio real |
 | `config/experiment.synthetic.yaml` | Presupuesto reducido del sintético |
-| `results/` | Salidas. Se regeneran al correr |
+| `results/` | Auditoría, estudio real y sintético, ya versionados |
 
 El sintético, con señal débil y al menos 20 variables:
 
@@ -40,7 +40,7 @@ El sintético, con señal débil y al menos 20 variables:
 .\.venv\Scripts\python.exe scripts\run_experiments.py --schema config/schema.synthetic.yaml --experiment config/experiment.synthetic.yaml --output results/synthetic --planted-only
 ```
 
-Las cifras del estudio están en `results/`, no en este archivo.
+Las cifras y su lectura están en `results/` y en `PLENA_Estado_Resultados.md`.
 
 ## Método, en corto
 
@@ -48,7 +48,7 @@ El cromosoma es real, en `[-1, 1]`, con una posición por variable original. `w_
 
 La ruta principal imputa con mediana o moda ajustada solo en train. Las columnas de escala grande usan `log1p` y después `StandardScaler`. `education_level` es ordinal con el orden natural 1–19; el 15 ausente no se rellena. `ville_id` no entra en X: parte los datos para que ninguna aldea caiga en dos particiones. Hay una comparación aparte con `education_level` nominal y otra con `ville_id` nominal.
 
-V1 no usa la etiqueta en la aptitud. V2 mezcla Silhouette y ARI, y el ARI usa `depressed` solo en train. Los baselines son pesos iguales y búsqueda aleatoria con el mismo número de evaluaciones. Con 10 semillas de GA, cinco parejas no bastan para que el Wilcoxon bilateral baje de 0.0625; el informe lo dice cuando aplica.
+V1 no usa la etiqueta en la aptitud. V2 mezcla Silhouette y ARI, y el ARI usa `depressed` solo en train. Los baselines son pesos iguales y búsqueda aleatoria con el mismo número de evaluaciones. El contraste publicado usa 10 semillas del genético. `comparison.md` trae además un aviso de plantilla sobre cinco parejas; la lectura de ese aviso está en `PLENA_Estado_Resultados.md`.
 
 La robustez, ya elegida la configuración, repite solo ese k y k = 3 en otras particiones y semillas. No reoptimiza toda la malla. CMA-ES es el comparador siguiente. NSGA-II entra solo si el estudio principal ya cerró y queda tiempo.
 
