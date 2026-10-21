@@ -96,6 +96,8 @@ class PenaltyConfig:
     small_cluster_coef: float = 1.0
     neff_coef: float = 0.25
     invalid_score: float = -1.0
+    collapse_coef: float = 0.0
+    collapse_tau: float = 0.15
 
 
 @dataclass
@@ -275,6 +277,8 @@ def load_experiment(path: str | Path) -> ExperimentConfig:
             small_cluster_coef=float(pen_raw.get("small_cluster_coef", 1.0)),
             neff_coef=float(pen_raw.get("neff_coef", 0.25)),
             invalid_score=float(pen_raw.get("invalid_score", -1.0)),
+            collapse_coef=float(pen_raw.get("collapse_coef", 0.0)),
+            collapse_tau=float(pen_raw.get("collapse_tau", 0.15)),
         ),
         kmeans_n_init=int(kmeans.get("n_init", raw.get("kmeans_n_init", 10))),
         kmeans_random_state=int(kmeans.get("random_state", raw.get("seed", 42))),
@@ -410,6 +414,10 @@ def validate_experiment(experiment: ExperimentConfig) -> None:
         raise ValueError("El escalador debe ser robust o standard.")
     if experiment.n_seeds_ga < 1 or experiment.n_random_runs < 1:
         raise ValueError("El número de semillas y de búsquedas aleatorias debe ser positivo.")
+    if experiment.penalties.collapse_coef < 0:
+        raise ValueError("collapse_coef no puede ser negativo.")
+    if experiment.penalties.collapse_tau <= 0:
+        raise ValueError("collapse_tau debe ser positivo.")
 
 
 def assert_weights_feasible(n_features: int, experiment: ExperimentConfig) -> None:

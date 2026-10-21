@@ -1,0 +1,29 @@
+Sonda de aptitud con penalización de colapso.
+La prueba no se puntúa, no entra en la aptitud y no se usa para elegir.
+depressed no entra en X ni en la aptitud de train. V1 sigue siendo Silhouette
+menos las penalizaciones ya existentes, menos collapse_coef * near_collapse.
+near_collapse es la media de exp(-a / (tau * b)): a es la distancia al propio
+centroide y b la distancia a la centroide más cercana. tau = collapse_tau.
+El redondeo a 6 decimales solo cuenta filas distintas; no define la penalización.
+
+Baseline: pesos iguales, misma partición, mismo k, puntuados en validación.
+Control histórico: medias V1 ya guardadas en results/real/comparison.csv.
+No se repite esa malla y no se emparejan semillas.
+
+Elegibilidad de una corrida, medida en validación:
+- n_unique > k
+- near_collapse < 0.5
+- silhouette < 0.99
+
+Un k es viable si al menos 3 de 5 semillas son elegibles.
+Entre los k viables se toma el de mayor ARI medio de validación.
+El individuo que se guarda es, dentro de ese k, la semilla elegible de mayor
+ARI. El desempate es mayor N_eff, menos variables activas y semilla menor.
+Esa elección usa el ARI de validación, así que ese ARI no confirma el resultado.
+
+Decisión, con el ARI medio de las semillas de ese k, no con el máximo:
+- apoyo_descriptivo si el medio supera a pesos iguales en al menos 0.02.
+- sin_margen si lo supera en menos de 0.02.
+- rechazado si no lo supera, si ningún k es viable, o si la media no mejora.
+Con 5 semillas el apoyo descriptivo no es una mejora general.
+No se calcula un Wilcoxon para declararla.

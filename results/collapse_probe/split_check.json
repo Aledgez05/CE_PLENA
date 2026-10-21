@@ -1,0 +1,7 @@
+{
+  "train_matches_historical": true,
+  "val_matches_historical": true,
+  "n_train": 856,
+  "n_val": 286,
+  "note": "La prueba no se compara ni se punt\u00faa en esta sonda."
+}

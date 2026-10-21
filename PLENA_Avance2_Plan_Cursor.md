@@ -1,5 +1,7 @@
 # PLENA — Plan de implementación para el Avance 2 (meta: 60%)
 
+> **Estado al 21 de octubre de 2026.** Este archivo es el plan de implementación. No es el informe de resultados. La evidencia, la matriz de cumplimiento y el experimento que sigue están en `PLENA_Estado_Resultados.md`. El posparto, los tres niveles clínicos de riesgo y FastAPI no se marcan aquí como cumplidos: el alcance vigente los dejó fuera o los sustituyó. Los txt citados en la sección 7 (`PresentacionAvance1.txt`, `DocumentoPropuestaAvance1.txt`, `PlanPropuestaParaAvance2.txt`) no están en el repositorio.
+
 > **Documento para el agente de Cursor.** Léelo completo antes de escribir código. Trabaja **un paso a la vez**, en el orden indicado, y no avances si el criterio de aceptación del paso actual no se cumple.
 
 **Materia:** Cómputo Evolutivo

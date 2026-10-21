@@ -2,11 +2,13 @@
 
 Respuestas incorporadas. El esquema confirmado está en `config/schema.yaml`. El borrador automático sigue en `config/schema.draft.yaml`.
 
+La auditoría del 21 de octubre de 2026 no reabrió las respuestas 1 a 9. La lectura experimental está en `PLENA_Estado_Resultados.md`. Lo que sigue abierto, y no es una duda de esquema, está al final de este archivo.
+
 ## 1. Etiqueta `depressed`
 
 Valores observados: 0 en 1191 filas, 1 en 238 filas. Sin faltantes.
 
-Qué significa 0: no deprimido, según la descripción pública del dataset en OpenML id 43419 (republicado desde Kaggle/Frankcc).
+Qué significa 0: no deprimido, según la descripción pública del dataset en OpenML id 43419.
 
 Qué significa 1: deprimido, según esa misma descripción.
 
@@ -14,7 +16,7 @@ Cómo se obtuvo la etiqueta: no está documentado. Queda registrado como indicad
 
 ## 2. Tipo de cada columna
 
-Propuesta automática, sin confirmar. Marca el tipo final: continua, discreta, binaria, nominal, ordinal (con el orden) o identificador.
+Tipos confirmados en `config/schema.yaml`. La propuesta automática de la auditoría quedó en `config/schema.draft.yaml` y no se usa para el estudio.
 
 | Columna | Propuesta | Tipo confirmado | Notas |
 |---|---|---|---|
@@ -73,7 +75,7 @@ Referencia actual: 10 semillas del genético, 30 búsquedas aleatorias, poblaci�
 
 Semillas: 10 para el GA y 30 búsquedas aleatorias. Población 40, generaciones 40. Laptop sin GPU; K-Means, Silhouette y faiss-cpu en CPU.
 
-Tiempo máximo por corrida: el estudio completo apunta a 6 horas como máximo. Una corrida de GA apunta a 10 minutos como máximo. El tiempo medido queda en `results/cost_estimate.csv`.
+Tiempo máximo por corrida: el estudio completo apunta a 6 horas como máximo. Una corrida de GA apunta a 10 minutos como máximo. La sonda y la estimación quedaron en `results/real/cost_estimate.csv`. Las medias observadas por corrida están en `results/real/comparison.md`. No hay un tiempo de pared del estudio completo.
 
 ## 8. NSGA-II
 
@@ -81,4 +83,14 @@ Tiempo máximo por corrida: el estudio completo apunta a 6 horas como máximo. U
 
 ## 9. Dataset
 
-¿`b_depressed.csv` es el definitivo? Sí / no. Si va a cambiar, en qué: sí, para este avance. Es una encuesta de condiciones de vida en zonas rurales con un indicador binario de depresión, semántica no documentada.
+¿`b_depressed.csv` es el definitivo? Sí / no. Si va a cambiar, en qué: sí, para este avance. Es una encuesta de condiciones de vida en zonas rurales con un indicador binario de depresión, semántica no documentada. No es un estudio de posparto ni una muestra descrita en el esquema como población general.
+
+## 10. Qué queda abierto después de la auditoría
+
+Cerrado con evidencia: la ponderación de V1/V2 mejora el Silhouette y no la concordancia con `depressed`. La sonda con penalización de colapso, en `results/collapse_probe/`, evitó el Silhouette 1 y tampoco superó el ARI medio de pesos iguales. Cifras: `PLENA_Estado_Resultados.md`, secciones 6 y 11.
+
+Sigue sin respuesta:
+
+- Cómo se construyó `depressed`. La descripción pública no documenta el instrumento.
+- El criterio de mayoría de la señal plantada, sobre las semillas. La corrida sintética guardada no trae ese recuento.
+- La verificación del paso 9.4 en otra máquina.

@@ -9,6 +9,7 @@ from sklearn.metrics import adjusted_rand_score, silhouette_score
 
 from plena.chromosome import decode_uncapped, n_eff
 from plena.clustering import fit_kmeans
+from plena.collapse import collapse_report
 from plena.config import ExperimentConfig
 from plena.distance import ColumnMap, transform_weighted
 
@@ -137,19 +138,29 @@ class FitnessEvaluator:
                 return self._invalid("V2 necesita la etiqueta de train", genes)
             ari_value = float(adjusted_rand_score(self.y, labels))
             base = self.experiment.v2_alpha * silhouette + (1.0 - self.experiment.v2_alpha) * ari_value
-        score = float(base - regularizer - penalty_small - penalty_neff)
+        penalty_collapse = 0.0
+        near_collapse = None
+        if penalties_cfg.collapse_coef > 0:
+            geometry = collapse_report(weighted, labels, tau=penalties_cfg.collapse_tau)
+            near_collapse = float(geometry["near_collapse"])
+            penalty_collapse = penalties_cfg.collapse_coef * near_collapse
+        score = float(base - regularizer - penalty_small - penalty_neff - penalty_collapse)
+        penalties = {
+            "invalid": 0.0,
+            "small_cluster": float(penalty_small),
+            "neff": float(penalty_neff),
+            "regularizer": float(regularizer),
+            "collapse": float(penalty_collapse),
+        }
+        if near_collapse is not None:
+            penalties["near_collapse"] = near_collapse
         return FitnessBreakdown(
             score=score,
             silhouette=silhouette,
             ari_train=ari_value,
             n_active=n_active,
             n_eff=effective,
-            penalties={
-                "invalid": 0.0,
-                "small_cluster": float(penalty_small),
-                "neff": float(penalty_neff),
-                "regularizer": float(regularizer),
-            },
+            penalties=penalties,
             valid=True,
             weights=weights,
             weights_before_cap=before_cap,

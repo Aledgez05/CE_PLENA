@@ -1,6 +1,8 @@
 # PLENA
 
-Prototipo académico de cómputo evolutivo. Un algoritmo genético de dominio real elige y pondera variables para agrupar una encuesta de condiciones de vida en zonas rurales con un indicador binario de depresión. La lectura cerrada del avance, las cifras y lo que sigue están en `PLENA_Estado_Resultados.md`.
+Prototipo académico de cómputo evolutivo. Un algoritmo genético de dominio real elige y pondera variables para agrupar una encuesta de condiciones de vida en zonas rurales con un indicador binario de depresión. El alcance vigente es depresión en general, no un estudio de posparto. El esquema no describe esta muestra como población general. La lectura del avance, las cifras y lo que sigue están en `PLENA_Estado_Resultados.md`.
+
+En la corrida guardada en `results/real/`, esa ponderación mejora el Silhouette frente a pesos iguales y frente a la búsqueda aleatoria. No mejora la concordancia con `depressed`: el ARI de prueba de la solución elegida es −0.0167 y su intervalo por aldea incluye el cero. Una sonda posterior, en `results/collapse_probe/`, penaliza los clusters de radio casi nulo y tampoco supera el ARI medio de validación de los pesos iguales. Los grupos siguen siendo exploratorios.
 
 No diagnostica depresión. Los grupos se llaman `cluster_0`, `cluster_1`, … y no son niveles clínicos de riesgo. ARI y AUC no se interpretan como validación clínica: la construcción del indicador `depressed` no está documentada. En la descripción pública de OpenML (id 43419) 0 es no deprimido y 1 es deprimido.
 

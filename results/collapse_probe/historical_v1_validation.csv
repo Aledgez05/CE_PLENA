@@ -1,0 +1,9 @@
+source,role,method,k,n,ari_mean,silhouette_mean,n_active_mean,n_eff_mean
+results/real/comparison.csv,control_historico_v1,equal_weights,2,1,-0.0095386902613992,0.1651511697555278,20.0,19.999999999999996
+results/real/comparison.csv,control_historico_v1,equal_weights,3,1,0.0058046642861067,0.1359065566315161,20.0,19.999999999999996
+results/real/comparison.csv,control_historico_v1,equal_weights,4,1,-0.0099694411960216,0.1552693264501666,20.0,19.999999999999996
+results/real/comparison.csv,control_historico_v1,equal_weights,5,1,0.0179289650874428,0.1268091453141807,20.0,19.999999999999996
+results/real/comparison.csv,control_historico_v1,ga,2,10,-0.01135470144485731,0.659967351682412,4.0,3.5740966614546785
+results/real/comparison.csv,control_historico_v1,ga,3,10,-0.01136405474645251,0.8391589029701422,4.0,3.574337691344808
+results/real/comparison.csv,control_historico_v1,ga,4,10,-0.00290447373813844,0.9157466950607889,4.0,3.5989010989010985
+results/real/comparison.csv,control_historico_v1,ga,5,10,0.00317556621324757,0.9632298630251503,4.0,3.634325125609018
