@@ -22,7 +22,7 @@ La pregunta de este avance es si esa ponderación produce una representación m�
 
 Hay dos respuestas, y no dicen lo mismo.
 
-**Demostrado para la geometría.** En validación, el genético mejora el Silhouette euclidiano frente a pesos iguales y frente a la búsqueda aleatoria, en V1 y en V2, para `k ∈ {2, 3, 4, 5}`. El contraste es Wilcoxon bilateral, 10 parejas, p &lt; 0.05. La configuración elegida llega a Silhouette 1.0 también en la prueba. Fuente: `results/real/comparison.md`, `results/real/comparison.csv`, `results/real/chosen.json`.
+**Demostrado para la geometría.** En validación, el genético mejora el Silhouette euclidiano frente a pesos iguales y frente a la búsqueda aleatoria, en V1 y en V2, para `k ∈ {2, 3, 4, 5}`. El contraste es Wilcoxon bilateral, 10 parejas, p < 0.05. La configuración elegida llega a Silhouette 1.0 también en la prueba. Fuente: `results/real/comparison.md`, `results/real/comparison.csv`, `results/real/chosen.json`.
 
 **No demostrado para la depresión.** Esa mejora no se traslada a la etiqueta `depressed`. El ARI de prueba de las dos soluciones elegidas es −0.0167. El intervalo bootstrap por aldea, 400 réplicas, va de −0.0436 a 0.0095 e incluye el cero. En varios `k` el ARI de validación del genético empata o empeora frente a pesos iguales. Las cinco combinaciones de las variables elegidas tienen prevalencias entre 12.5 % y 17.5 %, con una tasa global de 16.7 % (238/1429). Una logística y un árbol, ajustados en el espacio ponderado de V1 y puntuados en validación, quedan en AUC 0.483 y 0.485.
 
@@ -312,7 +312,7 @@ El procedimiento de las medias de robustez fue agrupar `results/real/robustness.
 
 La comparación justa, ya ejecutada y evaluada, es genético contra pesos iguales y contra búsqueda aleatoria, misma representación, mismo `k`, misma partición, Silhouette y ARI de validación. El Wilcoxon empareja por la semilla etiquetada. Pesos iguales tiene una sola fila, así que las 10 semillas del genético se comparan contra ese valor constante. La búsqueda aleatoria tiene 30 corridas; el contraste usa las 10 cuya semilla etiquetada coincide con la del genético (42–51). Las medias de la tabla anterior sí usan las 30.
 
-Fuente de cada frase de esta lista: `results/real/comparison.md`. Umbral publicado: p &lt; 0.05, Wilcoxon bilateral.
+Fuente de cada frase de esta lista: `results/real/comparison.md`. Umbral publicado: p < 0.05, Wilcoxon bilateral.
 
 **Silhouette.** El genético mejora frente a los dos baselines, en V1 y en V2, en los cuatro `k`. Las diferencias medias contra pesos iguales van de 0.495 (`k = 2`, V1) a 0.836 (`k = 5`, V1). Contra la búsqueda aleatoria van de 0.061 a 0.269. El p de esos contrastes es 0.0020, salvo V1 `k = 2` contra búsqueda aleatoria (0.014) y V2 `k = 2` contra búsqueda aleatoria (0.0039).
 
