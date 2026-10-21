@@ -301,7 +301,7 @@ penalties: {min_cluster_frac: 0.05, neff_min: 3}
 
 ## 4. Protocolo de preguntas al usuario
 
-Tras la auditoría (paso 1.4), pregunta **de una vez** lo siguiente, con las opciones que haya detectado:
+Tras la auditoría (paso 1.4), lee el readme.md y si aun no queda pregunta **de una vez** lo siguiente, con las opciones que haya detectado:
 
 1. ¿Qué significan los valores de `depressed` (0/1) y cómo se obtuvo la etiqueta?
 2. ¿Cuáles columnas son nominales, ordinales (con qué orden), binarias, continuas y cuáles son identificadores?
