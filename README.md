@@ -1,63 +1,26 @@
 # PLENA
 
-Prototipo académico de cómputo evolutivo. Un algoritmo genético de dominio real elige y pondera variables para agrupar una encuesta de condiciones de vida en zonas rurales con un indicador binario de depresión. El alcance vigente es depresión en general, no un estudio de posparto. El esquema no describe esta muestra como población general. La lectura del avance, las cifras y lo que sigue están en `PLENA_Estado_Resultados.md`.
+FAISS agrupa en dos grupos. Un genético pondera las variables, una vez por Silhouette y otra por Rand. Se compara con tres baselines: clase mayoritaria, regresión logística y una red ligera. No diagnostica depresión.
 
-En la corrida guardada en `results/real/`, esa ponderación mejora el Silhouette frente a pesos iguales y frente a la búsqueda aleatoria. No mejora la concordancia con `depressed`: el ARI de prueba de la solución elegida es −0.0167 y su intervalo por aldea incluye el cero. Una sonda posterior, en `results/collapse_probe/`, penaliza los clusters de radio casi nulo y tampoco supera el ARI medio de validación de los pesos iguales. Los grupos siguen siendo exploratorios.
+La lectura de esta corrida está en `PLENA_Cuaderno_Resultados.md`. El estudio anterior, con otro protocolo, queda descrito en `PLENA_Estado_Resultados.md` y sus archivos siguen en `results/real/`.
 
-No diagnostica depresión. Los grupos se llaman `cluster_0`, `cluster_1`, … y no son niveles clínicos de riesgo. ARI y AUC no se interpretan como validación clínica: la construcción del indicador `depressed` no está documentada. En la descripción pública de OpenML (id 43419) 0 es no deprimido y 1 es deprimido.
+## Correr
 
-Silhouette no es comparable entre valores distintos de `k`. Se recorre `k ∈ {2,3,4,5}` y k = 3 se reporta siempre. El criterio de elección queda escrito en `results/` antes de optimizar: V1 por Silhouette de validación, V2 por la mezcla de Silhouette y ARI en validación. El conjunto de prueba no participa en esa elección.
-
-## Reproducir
-
-Python 3.10 o superior. En Windows, desde el repositorio clonado:
+Desde la raíz, con el entorno del repositorio. PyTorch se instala aparte porque la rueda de CPU no sale del índice normal:
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -U pip
-.\.venv\Scripts\python.exe -m pip install -e ".[dev,faiss,extra]"
+.\.venv\Scripts\python.exe -m pip install -e ".[dev]"
+.\.venv\Scripts\python.exe -m pip install torch==2.14.1 --index-url https://download.pytorch.org/whl/cpu
 .\.venv\Scripts\python.exe -m pytest
-.\.venv\Scripts\python.exe scripts\run_experiments.py --schema config/schema.yaml --experiment config/experiment.yaml --output results/real
+.\.venv\Scripts\python.exe scripts\run.py
 ```
 
-No se usa GPU. K-Means, Silhouette y `faiss-cpu` corren en CPU. `requirements.lock` guarda el `pip freeze` de la máquina en la que se cerró este avance. Si FAISS o kmedoids fallan en otra máquina, el código usa fuerza bruta NumPy e implementación alternante de k-medoids y lo anota en el informe.
+El recorrido es `data.py` (carga y partición), `cluster.py` (FAISS y genético), `baselines.py` (logística, red y clase mayoritaria) y `report.py` (tablas y figuras). `scripts/run.py` llama a `study.py`. La prueba no entra en la búsqueda.
 
-Para repartir el trabajo: `--k`, `--variant v1|v2` y `--seeds A:B` (índices semiabiertos de la lista de semillas). Cada corrida terminada queda en `results/real/checkpoints/` y una segunda ejecución se la salta. `scripts/merge_results.py carpeta_a carpeta_b --output results/real` une checkpoints y tablas sin duplicar la clave método, variante, k, semilla y partición.
+## Resultados
 
-## Datos y configuración
+`results/cuaderno/` guarda la tabla de prueba, las matrices de confusión y cuatro figuras: comparación, convergencia, pesos y matrices. Las cifras de esta máquina están en `PLENA_Cuaderno_Resultados.md`.
 
-`data/b_depressed.csv` viaja en el repositorio para que el equipo pueda clonar y trabajar. Procedencia y límites: `data/README.md`. El esquema confirmado es `config/schema.yaml`. `config/schema.draft.yaml` es un borrador automático y no se usa para entrenar. `config/schema.synthetic.yaml` describe el generador de juguete.
-
-| Archivo | Papel |
-|---|---|
-| `config/schema.yaml` | Esquema confirmado del CSV real |
-| `config/experiment.yaml` | Presupuesto del estudio real |
-| `config/experiment.synthetic.yaml` | Presupuesto reducido del sintético |
-| `results/` | Auditoría, estudio real y sintético, ya versionados |
-
-El sintético, con señal débil y al menos 20 variables:
-
-```powershell
-.\.venv\Scripts\python.exe -m plena.synthetic
-.\.venv\Scripts\python.exe scripts\run_experiments.py --schema config/schema.synthetic.yaml --experiment config/experiment.synthetic.yaml --output results/synthetic --planted-only
-```
-
-Las cifras y su lectura están en `results/` y en `PLENA_Estado_Resultados.md`.
-
-## Método, en corto
-
-El cromosoma es real, en `[-1, 1]`, con una posición por variable original. `w_max` es configurable. Los pesos se reportan antes y después del tope. El peso entra como `sqrt(w_j / n_cols_j)` en el bloque de la variable, de modo que una nominal de muchos niveles no domina.
-
-La ruta principal imputa con mediana o moda ajustada solo en train. Las columnas de escala grande usan `log1p` y después `StandardScaler`. `education_level` es ordinal con el orden natural 1–19; el 15 ausente no se rellena. `ville_id` no entra en X: parte los datos para que ninguna aldea caiga en dos particiones. Hay una comparación aparte con `education_level` nominal y otra con `ville_id` nominal.
-
-V1 no usa la etiqueta en la aptitud. V2 mezcla Silhouette y ARI, y el ARI usa `depressed` solo en train. Los baselines son pesos iguales y búsqueda aleatoria con el mismo número de evaluaciones. El contraste publicado usa 10 semillas del genético. `comparison.md` trae además un aviso de plantilla sobre cinco parejas; la lectura de ese aviso está en `PLENA_Estado_Resultados.md`.
-
-La robustez, ya elegida la configuración, repite solo ese k y k = 3 en otras particiones y semillas. No reoptimiza toda la malla. CMA-ES es el comparador siguiente. NSGA-II entra solo si el estudio principal ya cerró y queda tiempo.
-
-## Amenazas a la validez
-
-- La etiqueta es un indicador binario de la fuente. Su construcción no está confirmada, así que no se puede descartar del todo una fuga no documentada. Ningún nombre de columna parece un instrumento de depresión.
-- Maximizar Silhouette puede describir una partición geométrica sin relación con la etiqueta.
-- Elegir el modelo con el mismo conjunto que se reporta infla el resultado. Train busca, validación elige, prueba se lee una vez.
-- Un cluster puede reflejar aldea o demografía. La ablación sirve para mirarlo; no se concluye causalidad.
-- Con este tamaño, FAISS puede no ser más rápido que la fuerza bruta. El informe de vecinos separa empates de desacuerdos.
+`data/b_depressed.csv` viaja en el repositorio. Procedencia y límites: `data/README.md`.

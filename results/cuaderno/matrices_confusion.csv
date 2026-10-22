@@ -1,0 +1,19 @@
+method,seed,tn,fp,fn,tp
+FAISS base,17,176,63,41,8
+FAISS + GA Silhouette,17,186,53,43,6
+FAISS + GA Rand,17,18,221,4,45
+Red neuronal ligera,17,149,90,23,26
+Regresión logística,17,117,122,15,34
+Clase mayoritaria,17,239,0,49,0
+FAISS base,42,93,146,13,36
+FAISS + GA Silhouette,42,23,216,5,44
+FAISS + GA Rand,42,23,216,5,44
+Red neuronal ligera,42,128,111,18,31
+Regresión logística,42,117,122,15,34
+Clase mayoritaria,42,239,0,49,0
+FAISS base,91,187,52,33,16
+FAISS + GA Silhouette,91,30,209,5,44
+FAISS + GA Rand,91,23,216,5,44
+Red neuronal ligera,91,164,75,24,25
+Regresión logística,91,117,122,15,34
+Clase mayoritaria,91,239,0,49,0

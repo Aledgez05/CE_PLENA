@@ -1,7 +1,6 @@
-"""PLENA: selección y ponderación de variables con un algoritmo genético.
+"""Agrupamiento con FAISS y un genético, comparado con logística, red y clase mayoritaria.
 
-Prototipo académico de análisis de datos. No diagnostica depresión.
-Los grupos se nombran cluster_0, cluster_1, … y no equivalen a niveles clínicos.
+No diagnostica depresión. La lectura está en PLENA_Cuaderno_Resultados.md.
 """
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
